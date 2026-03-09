@@ -30,7 +30,7 @@ const endpoints = [
   {
     id: 'mini_block',
     label: 'Mini Block',
-    description: 'Poziomy baner 380px – jedna linia adresu + linia z rabatem i kodem.',
+    description: 'Poziomy baner 380px - pierwsza linia adres + druga linia rabat i kod promocyjny.',
     width: '380px',
     path: '/promo/mini_block',
     example: `${BASE}/promo/mini_block?promo_code=OLKOFF26`,
@@ -39,7 +39,7 @@ const endpoints = [
   {
     id: 'macro_block',
     label: 'Macro Block',
-    description: 'Kompaktowy baner 320px – domena na górze, rabat i kod poniżej.',
+    description: 'Kompaktowy baner 320px - domena na górze, rabat i kod poniżej.',
     width: '320px',
     path: '/promo/macro_block',
     example: `${BASE}/promo/macro_block?promo_code=OLKOFF26`,
@@ -388,7 +388,7 @@ export default function PromoDocsPage() {
                 </tr>
               </thead>
               <tbody>
-                <tr><td>Kod nieistniejący</td><td>Placeholder</td></tr>
+                <tr><td>Kod nieprawidłowy</td><td>Placeholder</td></tr>
                 <tr><td><span className="param-name">active = false</span></td><td>Placeholder</td></tr>
                 <tr><td><span className="param-name">expires_at</span> w przeszłości</td><td>Placeholder</td></tr>
                 <tr><td><span className="param-name">used_count &gt;= max_uses</span></td><td>Placeholder</td></tr>
