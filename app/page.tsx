@@ -10,7 +10,7 @@ const STATUS_CONFIG: Record<SiteStatus, { banner: string; icon: string; label: s
   accepting: {
     banner: 'bg-blue-100 text-blue-700',
     icon: '🟢',
-    label: 'Przyjmujemy zgłoszenia',
+    label: 'Zgłoszenia aktywne',
     block: false,
   },
   maintenance: {
@@ -105,6 +105,8 @@ export default async function HomePage() {
           <a href="/polityka-prywatnosci" className="text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2 transition">Polityka prywatności</a>
           <span className="text-gray-300 text-xs">|</span>
           <a href="/rodo" className="text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2 transition">RODO</a>
+          <span className="text-gray-300 text-xs">|</span>
+          <a href="/promo" className="text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2 transition">Materiały promocyjne</a>
         </p>
       </div>
     </main>
