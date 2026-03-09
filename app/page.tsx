@@ -2,6 +2,8 @@ import { Suspense } from 'react'
 import { createAdminClient } from '@/lib/supabase/server'
 import BookingCalendar from '@/components/BookingCalendar'
 import ReservationStatusButton from '@/components/ReservationStatusButton'
+import ReviewsCarousel from '@/components/ReviewsCarousel'
+import type { Review } from '@/components/ReviewsCarousel'
 import type { SiteStatus } from '@/lib/types'
 
 const STATUS_CONFIG: Record<SiteStatus, { banner: string; icon: string; label: string; block: boolean }> = {
@@ -44,6 +46,18 @@ export default async function HomePage() {
   const blockedDates = blockedRows?.map((r: { date: string }) => r.date) ?? []
   const takenDates   = takenRows?.map((r: { date: string }) => r.date)   ?? []
 
+  const reviews: Review[] = [
+    {
+      id: 1,
+      nickname: 'OlekOfficial',
+      rating: 5,
+      description: 'Bardzo profesjonalna i szybka obsługa, wszystko IT działa po transmisję. Polecam!',
+      verified: true,
+      channel_link: 'https://kick.com/olekofficial',
+      avatar_url: 'https://files.kick.com/images/user/51192452/profile_image/conversion/2496d34f-f6e1-44f0-8b3d-a6a7dab5cbe8-fullsize.webp',
+    }
+  ]
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-8 sm:py-12 px-4">
       <Suspense>
@@ -65,6 +79,7 @@ export default async function HomePage() {
             Konsultacje IT, instalacje, konfiguracje i więcej -{' '}
             <span className="text-blue-600 font-medium">wybierz termin i umów wizytę</span>
           </p>
+          <ReviewsCarousel reviews={reviews} />
         </div>
 
         <div className="bg-white rounded-3xl shadow-xl shadow-blue-100/60 border border-gray-100/80 p-4 sm:p-6 backdrop-blur">
