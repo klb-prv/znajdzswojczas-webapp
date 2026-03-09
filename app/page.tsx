@@ -51,7 +51,7 @@ export default async function HomePage() {
       id: 1,
       nickname: 'OlekOfficial',
       rating: 5,
-      description: 'Bardzo profesjonalna i szybka obsługa, wszystko IT działa po transmisję. Polecam!',
+      description: 'Bardzo profesjonalna i szybka obsługa, wszystko IT działa pod transmisję. Polecam!',
       verified: true,
       channel_link: 'https://kick.com/olekofficial',
       avatar_url: 'https://files.kick.com/images/user/51192452/profile_image/conversion/2496d34f-f6e1-44f0-8b3d-a6a7dab5cbe8-fullsize.webp',
