@@ -11,6 +11,7 @@ export interface Review {
   description: string
   verified?: boolean
   channel_link?: string
+  published_at?: string  // yyyy-MM-dd
 }
 
 interface Props {
@@ -44,11 +45,18 @@ function ReviewCard({ review }: { review: Review }) {
 
   return (
     <div className="relative flex-shrink-0 w-[304px] bg-gray-100 dark:bg-[#0d1526] rounded-2xl shadow-sm border border-gray-200/60 dark:border-[#1a2235] p-4 flex flex-col items-center gap-2 select-none">
-      {/* Media creator badge */}
+      {/* Media creator badge + date */}
       {review.channel_link && (
-        <span className="absolute top-2 right-2 bg-gradient-to-r from-rose-500 to-pink-600 text-white text-[10px] font-extrabold px-2.5 py-1.5 rounded-xl leading-tight tracking-widest uppercase shadow shadow-rose-500/30 text-center">
-          Media<br />creator
-        </span>
+        <div className="absolute top-2 right-2 flex flex-col items-center gap-1">
+          <span className="bg-gradient-to-r from-rose-500 to-pink-600 text-white text-[10px] font-extrabold px-2.5 py-1.5 rounded-xl leading-tight tracking-widest uppercase shadow shadow-rose-500/30 text-center">
+            Media<br />creator
+          </span>
+          {review.published_at && (
+            <span className="text-[9px] text-gray-400 dark:text-gray-500">
+              {review.published_at}
+            </span>
+          )}
+        </div>
       )}
 
       {/* Avatar */}
@@ -88,7 +96,7 @@ function ReviewCard({ review }: { review: Review }) {
       </div>
 
       {/* Description */}
-      <p className="text-xs text-gray-500 dark:text-gray-400 text-center leading-relaxed line-clamp-3">
+      <p className="text-xs text-gray-900 dark:text-gray-400 text-center leading-relaxed line-clamp-3">
         {review.description}
       </p>
 
