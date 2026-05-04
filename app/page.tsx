@@ -1,4 +1,5 @@
 import { Suspense } from 'react'
+import Link from 'next/link'
 import { createAdminClient } from '@/lib/supabase/server'
 import BookingCalendar from '@/components/BookingCalendar'
 import ReservationStatusButton from '@/components/ReservationStatusButton'
@@ -103,7 +104,7 @@ export default async function HomePage() {
         </div>
         <p className="text-center text-xs text-gray-400 mt-6">znajdźswójczas.pl - szybka pomoc techniczna</p>
         <p className="text-center mt-1 flex items-center justify-center gap-3">
-          <a href="/uslugi" className="text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2 transition">Usługi</a>
+          <Link href="/uslugi" className="text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2 transition">Usługi</Link>
           <span className="text-gray-300 text-xs">|</span>
           <a href="/polityka-prywatnosci" className="text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2 transition">Polityka prywatności</a>
           <span className="text-gray-300 text-xs">|</span>
