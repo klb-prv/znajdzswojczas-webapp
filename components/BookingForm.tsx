@@ -381,6 +381,17 @@ export default function BookingForm({ date, onSuccess }: Props) {
                 <span>+{totalSurcharge},00 zł</span>
               </div>
             )}
+            {appliedDiscount && (
+              <div className="flex justify-between text-green-600">
+                <span>Kod {appliedDiscount.code}</span>
+                <span>
+                  −{appliedDiscount.discount_type === 'percent'
+                    ? `${appliedDiscount.discount_value}% (−${discountAmount},00 zł)`
+                    : `${discountAmount},00 zł`
+                  }
+                </span>
+              </div>
+            )}
             {priorityTier === 'priority' && (
               <div className="flex justify-between text-orange-600">
                 <span>⚡ Priorytetowa realizacja</span>
@@ -391,17 +402,6 @@ export default function BookingForm({ date, onSuccess }: Props) {
               <div className="flex justify-between text-red-600">
                 <span>🔥 Natychmiastowa realizacja</span>
                 <span>+{EXTRA_PRIORITY_PRICE},00 zł</span>
-              </div>
-            )}
-            {appliedDiscount && (
-              <div className="flex justify-between text-green-600">
-                <span>Kod {appliedDiscount.code}</span>
-                <span>
-                  −{appliedDiscount.discount_type === 'percent'
-                    ? `${appliedDiscount.discount_value}% (−${discountAmount},00 zł)`
-                    : `${discountAmount},00 zł`
-                  }
-                </span>
               </div>
             )}
             <div className="flex justify-between font-bold text-gray-800 text-sm">
