@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { SERVICES, SERVICE_OPTIONS, SERVICE_VARIANTS, OPTION_PRICE, PRIORITY_PRICE } from '@/lib/services'
+import { SERVICES, SERVICE_OPTIONS, SERVICE_VARIANTS, OPTION_PRICE, PRIORITY_PRICE, EXTRA_PRIORITY_PRICE, SERVICE_PACKAGES } from '@/lib/services'
+import Link from 'next/link'
 
 interface Props {
   date: string   // YYYY-MM-DD
@@ -13,11 +14,13 @@ export default function BookingForm({ date, onSuccess }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [viewMode, setViewMode] = useState<'uslugi' | 'pakiety'>('uslugi')
   const [selectedService, setSelectedService] = useState<string | null>(null)
+  const [selectedPackage, setSelectedPackage] = useState<string | null>(null)
   const [selectedVariant, setSelectedVariant] = useState<string | null>(null)
   const [selectedOptions, setSelectedOptions] = useState<string[]>([])
   const [form, setForm] = useState({ name: '', email: '', description: '', contact_method: 'email' as 'email' | 'discord', discord_nick: '' })
-  const [priority, setPriority] = useState(false)
+  const [priorityTier, setPriorityTier] = useState<'none' | 'priority' | 'immediate'>('none')
   const [consentPersonal, setConsentPersonal] = useState(false)
   const [consentTerms, setConsentTerms] = useState(false)
 
@@ -31,15 +34,16 @@ export default function BookingForm({ date, onSuccess }: Props) {
     discount_value: number
   } | null>(null)
 
-  const selectedSvc      = SERVICES.find((s) => s.id === selectedService) ?? null
+  const selectedSvc       = SERVICES.find((s) => s.id === selectedService) ?? null
+  const selectedPkg       = SERVICE_PACKAGES.find((p) => p.id === selectedPackage) ?? null
   const availableVariants = selectedService ? (SERVICE_VARIANTS[selectedService] ?? []) : []
   const requiresVariant   = availableVariants.length > 0
   const selectedVarObj    = availableVariants.find((v) => v.id === selectedVariant) ?? null
   const availableOptions  = selectedService ? (SERVICE_OPTIONS[selectedService] ?? []) : []
   const hasOptions        = selectedOptions.length > 0
   const totalSurcharge    = selectedOptions.length * OPTION_PRICE
-  const prioritySurcharge = priority ? PRIORITY_PRICE : 0
-  const basePrice         = selectedVarObj?.price ?? selectedSvc?.basePrice ?? 0
+  const prioritySurcharge = priorityTier === 'priority' ? PRIORITY_PRICE : priorityTier === 'immediate' ? EXTRA_PRIORITY_PRICE : 0
+  const basePrice         = selectedPackage ? 0 : (selectedVarObj?.price ?? selectedSvc?.basePrice ?? 0)
   const totalPrice        = basePrice + totalSurcharge + prioritySurcharge
   const discountAmount    = appliedDiscount
     ? appliedDiscount.discount_type === 'percent'
@@ -52,6 +56,17 @@ export default function BookingForm({ date, onSuccess }: Props) {
 
   const handleServiceChange = (id: string) => {
     setSelectedService(id)
+    setSelectedPackage(null)
+    setSelectedVariant(null)
+    setSelectedOptions([])
+    setAppliedDiscount(null)
+    setDiscountInput('')
+    setDiscountCodeError('')
+  }
+
+  const handlePackageChange = (id: string) => {
+    setSelectedPackage(id)
+    setSelectedService(null)
     setSelectedVariant(null)
     setSelectedOptions([])
     setAppliedDiscount(null)
@@ -103,11 +118,11 @@ export default function BookingForm({ date, onSuccess }: Props) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    if (!selectedService) {
-      setError('Wybierz rodzaj usługi')
+    if (!selectedService && !selectedPackage) {
+      setError('Wybierz rodzaj usługi lub pakiet')
       return
     }
-    if (requiresVariant && !selectedVariant) {
+    if (selectedService && requiresVariant && !selectedVariant) {
       setError('Wybierz typ realizacji (np. Single Page lub Web Application)')
       return
     }
@@ -116,13 +131,22 @@ export default function BookingForm({ date, onSuccess }: Props) {
       return
     }
     setLoading(true)
-    const serviceLabel = SERVICES.find((s) => s.id === selectedService)?.label ?? selectedService
-    const variantLabel  = availableVariants.find((v) => v.id === selectedVariant)?.label
-    const baseTopic     = variantLabel ? `${serviceLabel} -${variantLabel}` : serviceLabel
+
+    let baseTopic: string
+    if (selectedPackage) {
+      const pkg = SERVICE_PACKAGES.find((p) => p.id === selectedPackage)
+      baseTopic = `Pakiet: ${pkg?.title ?? selectedPackage}`
+    } else {
+      const svc = SERVICES.find((s) => s.id === selectedService)
+      const serviceLabel = svc?.label ?? selectedService ?? ''
+      const variantLabel  = availableVariants.find((v) => v.id === selectedVariant)?.label ?? ''
+      baseTopic = variantLabel ? `${serviceLabel} -${variantLabel}` : serviceLabel
+    }
     const topicBase = hasOptions
       ? `${baseTopic} [${selectedOptions.join(', ')}]`
       : baseTopic
-    const topic = priority ? `${topicBase} [Priorytet]` : topicBase
+    const priorityLabel = priorityTier === 'priority' ? ' [Priorytet]' : priorityTier === 'immediate' ? ' [Priorytet - Natychmiast]' : ''
+    const topic = topicBase + priorityLabel
     try {
       const contactSuffix = form.contact_method === 'discord' && form.discord_nick.trim()
         ? ` [Kontakt: Discord -${form.discord_nick.trim()}]`
@@ -155,34 +179,89 @@ export default function BookingForm({ date, onSuccess }: Props) {
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
 
-      {/* Rodzaj usługi */}
+      {/* Link do cen */}
+      <Link
+        href="/uslugi"
+        className="block text-center text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium"
+      >
+        → Zobacz ceny dostępnych usług
+      </Link>
+
+      {/* Przełącznik Usługi / Pakiety */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-3">Rodzaj usługi</label>
-        <div className="flex gap-2 pb-2 -mx-1 px-1 overflow-x-auto snap-x snap-mandatory scrollbar-hide sm:flex-wrap sm:overflow-x-visible sm:snap-none sm:pb-1">
-          {SERVICES.map((s) => {
-            const active = selectedService === s.id
-            return (
-              <button
-                key={s.id}
-                type="button"
-                onClick={() => handleServiceChange(s.id)}
-                className={`flex-shrink-0 snap-start flex flex-col items-center gap-1.5 px-4 py-3 rounded-2xl border text-xs font-medium transition-all duration-150 cursor-pointer select-none
-                  ${active
-                    ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-200'
-                    : 'bg-white border-gray-200 text-gray-600 hover:border-blue-300 hover:shadow-md hover:shadow-blue-50'
-                  }`}
-              >
-                <span className="text-2xl leading-none">{s.emoji}</span>
-                <span className="whitespace-nowrap">{s.label}</span>
-                <span className={`text-[10px] font-semibold ${active ? 'text-blue-200' : 'text-gray-400'}`}>
-                  od {s.basePrice} zł
-                </span>
-              </button>
-            )
-          })}
+        <div className="flex bg-gray-100 dark:bg-gray-800 rounded-xl p-1 mb-3">
+          <button
+            type="button"
+            onClick={() => { setViewMode('uslugi'); setSelectedPackage(null) }}
+            className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all duration-150 cursor-pointer select-none ${
+              viewMode === 'uslugi'
+                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+            }`}
+          >
+            💻 Usługi
+          </button>
+          <button
+            type="button"
+            onClick={() => { setViewMode('pakiety'); setSelectedService(null) }}
+            className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all duration-150 cursor-pointer select-none ${
+              viewMode === 'pakiety'
+                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+            }`}
+          >
+            📦 Pakiety
+          </button>
         </div>
-        {!selectedService && (
-          <p className="text-xs text-gray-400 mt-1.5 sm:hidden">← przewiń, żeby zobaczyć więcej opcji</p>
+
+        {viewMode === 'uslugi' && (
+          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-3 shadow-sm">
+            <div className="flex flex-col gap-1.5">
+              {SERVICES.map((s) => {
+                const active = selectedService === s.id
+                return (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => handleServiceChange(s.id)}
+                    className={`flex items-center gap-2 px-2.5 py-1.5 rounded-xl border text-xs font-medium transition-all duration-150 cursor-pointer select-none
+                      ${active
+                        ? 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-200'
+                        : 'bg-white dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-blue-300 hover:shadow-sm'
+                      }`}
+                  >
+                    <span className="text-lg leading-none">{s.emoji}</span>
+                    <span>{s.label}</span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {viewMode === 'pakiety' && (
+          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-3 shadow-sm">
+            <div className="flex flex-col gap-1.5">
+              {SERVICE_PACKAGES.map((p) => {
+                const active = selectedPackage === p.id
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => handlePackageChange(p.id)}
+                    className={`flex items-center gap-2 px-2.5 py-1.5 rounded-xl border text-xs font-medium transition-all duration-150 cursor-pointer select-none
+                      ${active
+                        ? 'bg-indigo-600 border-indigo-600 text-white shadow-md shadow-indigo-200'
+                        : 'bg-white dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-indigo-300 hover:shadow-sm'
+                      }`}
+                  >
+                    <span className="text-lg leading-none">{p.emoji}</span>
+                    <span>{p.title}</span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
         )}
       </div>
 
@@ -253,31 +332,39 @@ export default function BookingForm({ date, onSuccess }: Props) {
         </div>
       )}
 
-      {/* Wstępna wycena / paragon -pokazywany zawsze gdy wybrano usługę */}
-      {selectedSvc && (
+      {/* Wstępna wycena / paragon */}
+      {(selectedSvc || selectedPkg) && (
         <div className="border border-dashed border-gray-300 rounded-2xl p-4 bg-white font-mono text-xs">
           <p className="text-center text-gray-500 mb-3 uppercase tracking-widest text-[10px] font-semibold">
             ── Wstępna wycena ──
           </p>
           <div className="space-y-1.5">
-            {/* Usługa bazowa */}
-            <div className="flex justify-between text-gray-700">
-              <span className="font-medium">{selectedSvc.label}</span>
-              <span className="text-gray-500">
-                {selectedVarObj ? '-' : `od ${selectedSvc.basePrice},00 zł`}
-              </span>
-            </div>
-            {selectedVarObj && (
-              <div className="flex justify-between text-gray-500 pl-2">
-                <span className="before:content-['└_'] before:text-gray-300">{selectedVarObj.label}</span>
-                <span className="text-gray-500">od {selectedVarObj.price},00 zł</span>
+            {selectedPkg && (
+              <div className="flex justify-between text-gray-700">
+                <span className="font-medium">📦 {selectedPkg.title}</span>
+                <span className="text-gray-500">{selectedPkg.priceRange}</span>
               </div>
             )}
-            <div className="flex justify-between text-gray-400 text-[10px] pl-1">
-              <span>({selectedSvc.priceNote})</span>
-            </div>
+            {selectedSvc && (
+              <>
+                <div className="flex justify-between text-gray-700">
+                  <span className="font-medium">{selectedSvc.label}</span>
+                  <span className="text-gray-500">
+                    {selectedVarObj ? '-' : `od ${selectedSvc.basePrice},00 zł`}
+                  </span>
+                </div>
+                {selectedVarObj && (
+                  <div className="flex justify-between text-gray-500 pl-2">
+                    <span className="before:content-['└_'] before:text-gray-300">{selectedVarObj.label}</span>
+                    <span className="text-gray-500">od {selectedVarObj.price},00 zł</span>
+                  </div>
+                )}
+                <div className="flex justify-between text-gray-400 text-[10px] pl-1">
+                  <span>({selectedSvc.priceNote})</span>
+                </div>
+              </>
+            )}
 
-            {/* Dodatki technologiczne */}
             {selectedOptions.map((opt) => (
               <div key={opt} className="flex justify-between text-gray-500">
                 <span className="pl-2 before:content-['+_'] before:text-gray-300">{opt}</span>
@@ -294,10 +381,16 @@ export default function BookingForm({ date, onSuccess }: Props) {
                 <span>+{totalSurcharge},00 zł</span>
               </div>
             )}
-            {priority && (
+            {priorityTier === 'priority' && (
               <div className="flex justify-between text-orange-600">
                 <span>⚡ Priorytetowa realizacja</span>
                 <span>+{PRIORITY_PRICE},00 zł</span>
+              </div>
+            )}
+            {priorityTier === 'immediate' && (
+              <div className="flex justify-between text-red-600">
+                <span>🔥 Natychmiastowa realizacja</span>
+                <span>+{EXTRA_PRIORITY_PRICE},00 zł</span>
               </div>
             )}
             {appliedDiscount && (
@@ -314,7 +407,7 @@ export default function BookingForm({ date, onSuccess }: Props) {
             <div className="flex justify-between font-bold text-gray-800 text-sm">
               <span>RAZEM (wstępnie)</span>
               <span className={appliedDiscount ? 'text-green-600' : 'text-blue-600'}>
-                od {finalPrice},00 zł
+                {selectedPkg ? selectedPkg.priceRange : `od ${finalPrice},00 zł`}
               </span>
             </div>
           </div>
@@ -372,25 +465,46 @@ export default function BookingForm({ date, onSuccess }: Props) {
         </div>
       )}
 
-      {/* Priorytetowa realizacja */}
-      <div className="bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800/60 rounded-2xl p-4">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">⚡ Priorytetowa realizacja</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Do 3 dni roboczych · w miarę dostępności · <span className="font-semibold text-orange-600 dark:text-orange-400">+{PRIORITY_PRICE} zł</span></p>
-          </div>
-          <button
-            type="button"
-            onClick={() => setPriority((p) => !p)}
-            className={`relative flex-shrink-0 w-12 h-6 rounded-full transition-colors duration-200 focus:outline-none ${
-              priority ? 'bg-orange-500' : 'bg-gray-300'
-            }`}
-          >
-            <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${
-              priority ? 'translate-x-6' : 'translate-x-0'
-            }`} />
-          </button>
-        </div>
+      {/* Priorytet / Natychmiast */}
+      <div className="grid grid-cols-2 gap-3">
+        <button
+          type="button"
+          onClick={() => setPriorityTier(priorityTier === 'priority' ? 'none' : 'priority')}
+          className={`rounded-2xl p-4 border text-left transition-all duration-150 cursor-pointer select-none ${
+            priorityTier === 'priority'
+              ? 'bg-orange-50 dark:bg-orange-950/30 border-orange-300 dark:border-orange-700 shadow-md'
+              : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-orange-200 hover:shadow-sm'
+          }`}
+        >
+          <p className={`text-sm font-semibold ${priorityTier === 'priority' ? 'text-orange-800 dark:text-orange-300' : 'text-gray-700 dark:text-gray-300'}`}>
+            ⚡ Priorytet
+          </p>
+          <p className={`text-xs mt-0.5 ${priorityTier === 'priority' ? 'text-orange-600 dark:text-orange-400' : 'text-gray-400 dark:text-gray-500'}`}>
+            Do 3 dni roboczych
+          </p>
+          <p className={`text-base font-bold mt-1 ${priorityTier === 'priority' ? 'text-orange-900 dark:text-orange-200' : 'text-gray-500 dark:text-gray-400'}`}>
+            +{PRIORITY_PRICE} zł
+          </p>
+        </button>
+        <button
+          type="button"
+          onClick={() => setPriorityTier(priorityTier === 'immediate' ? 'none' : 'immediate')}
+          className={`rounded-2xl p-4 border text-left transition-all duration-150 cursor-pointer select-none ${
+            priorityTier === 'immediate'
+              ? 'bg-red-50 dark:bg-red-950/30 border-red-300 dark:border-red-700 shadow-md'
+              : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-red-200 hover:shadow-sm'
+          }`}
+        >
+          <p className={`text-sm font-semibold ${priorityTier === 'immediate' ? 'text-red-800 dark:text-red-300' : 'text-gray-700 dark:text-gray-300'}`}>
+            🔥 Natychmiast
+          </p>
+          <p className={`text-xs mt-0.5 ${priorityTier === 'immediate' ? 'text-red-600 dark:text-red-400' : 'text-gray-400 dark:text-gray-500'}`}>
+            Do 24h (w miarę dostępności)
+          </p>
+          <p className={`text-base font-bold mt-1 ${priorityTier === 'immediate' ? 'text-red-900 dark:text-red-200' : 'text-gray-500 dark:text-gray-400'}`}>
+            +{EXTRA_PRIORITY_PRICE} zł
+          </p>
+        </button>
       </div>
 
       {/* Dane osobowe */}
@@ -520,7 +634,7 @@ export default function BookingForm({ date, onSuccess }: Props) {
 
       <button
         type="submit"
-        disabled={loading || (requiresVariant && !selectedVariant) || !consentPersonal || !consentTerms}
+        disabled={loading || (selectedService && requiresVariant && !selectedVariant) || (!selectedService && !selectedPackage) || !consentPersonal || !consentTerms}
         className="w-full bg-blue-600 text-white rounded-xl py-3 text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none transition shadow-lg shadow-blue-200 active:scale-[0.98]"
       >
         {loading ? 'Wysyłanie...' : hasOptions ? 'Przygotuj zlecenie →' : 'Wyślij zgłoszenie →'}

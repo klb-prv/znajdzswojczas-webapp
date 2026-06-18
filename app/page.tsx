@@ -7,6 +7,7 @@ import ReviewsCarousel from '@/components/ReviewsCarousel'
 import type { Review } from '@/components/ReviewsCarousel'
 import type { SiteStatus } from '@/lib/types'
 
+
 const STATUS_CONFIG: Record<SiteStatus, { banner: string; icon: string; label: string; block: boolean }> = {
   accepting: {
     banner: 'bg-blue-100 text-blue-700',
