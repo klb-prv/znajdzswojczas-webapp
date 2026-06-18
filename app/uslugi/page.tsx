@@ -1,9 +1,9 @@
 import Link from 'next/link'
-import { SERVICES, SERVICE_VARIANTS, SERVICE_OPTIONS, OPTION_PRICE } from '@/lib/services'
+import { SERVICES, SERVICE_VARIANTS, SERVICE_OPTIONS, OPTION_PRICE, SERVICE_PACKAGES } from '@/lib/services'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Usługi – Znajdź swój czas',
+  title: 'Usługi - Znajdź swój czas',
   description: 'Pełna lista dostępnych usług IT: konsultacje, instalacje, konfiguracje i więcej.',
 }
 
@@ -21,6 +21,41 @@ export default function UslugiPage() {
             Konsultacje IT, instalacje, konfiguracje i więcej –{' '}
             <Link href="/" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">umów wizytę</Link>
           </p>
+
+          {SERVICE_PACKAGES.length > 0 && (
+            <div className="mb-10">
+              <h2 className="text-lg font-extrabold text-gray-900 dark:text-gray-50 mb-4">Pakiety usług</h2>
+              <div className="space-y-4">
+                {SERVICE_PACKAGES.map((pkg) => (
+                  <div
+                    key={pkg.id}
+                    className="rounded-2xl border border-indigo-100 dark:border-indigo-900 bg-indigo-50/60 dark:bg-indigo-950/30 p-5"
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className="text-2xl leading-none mt-0.5" aria-hidden="true">{pkg.emoji}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                          <h3 className="text-base font-bold text-gray-900 dark:text-gray-50">{pkg.title}</h3>
+                          <span className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 whitespace-nowrap">
+                            {pkg.priceRange}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{pkg.description}</p>
+                        <ul className="mt-3 space-y-1">
+                          {pkg.services.map((s) => (
+                            <li key={s.id} className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                              <span className="text-base leading-none" aria-hidden="true">{s.emoji}</span>
+                              <span>{s.label}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <ul className="space-y-4">
             {SERVICES.map((service) => {
@@ -88,7 +123,7 @@ export default function UslugiPage() {
             })}
           </ul>
 
-          <div className="border-t border-gray-100 dark:border-gray-800 pt-6 mt-8 text-xs text-gray-400 dark:text-gray-600 space-y-1">
+          <div className="border-t border-gray-100 dark:border-gray-800 pt-6 mt-10 text-xs text-gray-400 dark:text-gray-600 space-y-1">
             <p>Podane ceny mają charakter orientacyjny. Ostateczna cena ustalana jest indywidualnie.</p>
             <p>
               Szczegółowe warunki znajdziesz w{' '}
