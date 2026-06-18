@@ -56,7 +56,15 @@ export default async function HomePage() {
       verified: true,
       channel_link: 'https://kick.com/olekofficial',
       avatar_url: 'https://files.kick.com/images/user/51192452/profile_image/conversion/2496d34f-f6e1-44f0-8b3d-a6a7dab5cbe8-fullsize.webp',
-      published_at: '2024-05-20',
+      published_at: '2026-03-09',
+    },
+    {
+      id: 1,
+      nickname: 'Kacper (Milo)',
+      rating: 5,
+      description: 'Polecam wszystko chodzi dziala jak ma być.',
+      verified: true,
+      published_at: '2026-06-13',
     }
   ]
 
@@ -74,8 +82,10 @@ export default async function HomePage() {
           <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
             Znajdź swój czas
           </h1>
-          <div className="mt-2">
-            <a href="/regulamin" className="text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2 transition">Regulamin</a>
+          <div className="mt-2 flex items-center justify-center gap-3">
+            <Link href="/regulamin" className="text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2 transition">Regulamin</Link>
+            <span className="text-gray-300 text-xs">|</span>
+            <Link href="/uslugi" className="text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2 transition">Usługi</Link>
           </div>
           <p className="text-gray-500 mt-3 text-sm leading-relaxed">
             Konsultacje IT, instalacje, konfiguracje i więcej -{' '}
@@ -104,8 +114,6 @@ export default async function HomePage() {
         </div>
         <p className="text-center text-xs text-gray-400 mt-6">znajdźswójczas.pl - szybka pomoc techniczna</p>
         <p className="text-center mt-1 flex items-center justify-center gap-3">
-          <Link href="/uslugi" className="text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2 transition">Usługi</Link>
-          <span className="text-gray-300 text-xs">|</span>
           <a href="/polityka-prywatnosci" className="text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2 transition">Polityka prywatności</a>
           <span className="text-gray-300 text-xs">|</span>
           <a href="/rodo" className="text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2 transition">RODO</a>
