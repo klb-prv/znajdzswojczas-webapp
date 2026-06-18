@@ -39,7 +39,7 @@ function Stars({ rating }: { rating: number }) {
 function ReviewCard({ review }: { review: Review }) {
   const initials = review.nickname
     .split(' ')
-    .map((w) => w[0]?.toUpperCase() ?? '')
+    .map((w) => [...w].find((c) => /[a-zA-Z\u00C0-\u024F]/.test(c))?.toUpperCase() ?? '')
     .slice(0, 2)
     .join('')
 
