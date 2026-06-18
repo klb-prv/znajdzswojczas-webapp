@@ -116,7 +116,7 @@ function ReviewCard({ review }: { review: Review }) {
 export default function ReviewsCarousel({ reviews }: Props) {
   const trackRef = useRef<HTMLDivElement>(null)
   const [canLeft, setCanLeft] = useState(false)
-  const [canRight, setCanRight] = useState(true)
+  const [canRight, setCanRight] = useState(false)
 
   const CARD_WIDTH = 320 // px including gap
 
@@ -132,7 +132,12 @@ export default function ReviewsCarousel({ reviews }: Props) {
     if (!el) return
     updateArrows()
     el.addEventListener('scroll', updateArrows, { passive: true })
-    return () => el.removeEventListener('scroll', updateArrows)
+    const ro = new ResizeObserver(updateArrows)
+    ro.observe(el)
+    return () => {
+      el.removeEventListener('scroll', updateArrows)
+      ro.disconnect()
+    }
   }, [])
 
   function scroll(dir: 'left' | 'right') {
@@ -144,7 +149,7 @@ export default function ReviewsCarousel({ reviews }: Props) {
   if (!reviews.length) return null
 
   return (
-    <div className="relative mt-5 mb-1">
+    <div className="relative mt-5 mb-1 sm:w-[75vw] sm:max-w-none sm:mx-[calc(50%-37.5vw)]">
       {/* Arrow – left */}
       <button
         onClick={() => scroll('left')}
@@ -160,7 +165,7 @@ export default function ReviewsCarousel({ reviews }: Props) {
       {/* Scrollable track */}
       <div
         ref={trackRef}
-        className={`flex gap-3 overflow-x-auto scroll-smooth px-4 pt-8 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${reviews.length === 1 ? 'justify-center' : ''}`}
+        className={`flex gap-3 overflow-x-auto scroll-smooth px-4 pt-8 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:justify-center ${reviews.length === 1 ? 'justify-center' : ''}`}
       >
         {reviews.map((r) => (
           <ReviewCard key={r.id} review={r} />

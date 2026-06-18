@@ -51,7 +51,7 @@ export default function BookingCalendar({ blockedDates, takenDates }: Props) {
   return (
     <div>
       <h2 className="text-base font-semibold text-gray-700 mb-1">Wybierz termin</h2>
-      <p className="text-xs text-gray-400 mb-4">Kliknij wolny dzień -rezerwacje możliwe od jutra</p>
+      <p className="text-xs text-gray-400 mb-4">Kliknij wolny dzień - rezerwacje możliwe od jutra</p>
 
       <div className="flex justify-center">
         <DayPicker

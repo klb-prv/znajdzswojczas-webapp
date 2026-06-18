@@ -16,7 +16,7 @@ const STATUS_CONFIG: Record<SiteStatus, { banner: string; icon: string; label: s
     block: false,
   },
   maintenance: {
-    banner: 'bg-amber-100 text-amber-700',
+    banner: 'bg-amber-100 text-amber-600',
     icon: '🔧',
     label: 'Przerwa techniczna',
     block: true,

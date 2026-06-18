@@ -70,8 +70,13 @@ export default function RegulamingPage() {
 
             {/* §6 */}
             <section>
-              <h2 className="font-bold text-gray-800 dark:text-gray-100 text-base mb-3">§6. Kody zniżkowe</h2>
+              <h2 className="font-bold text-gray-800 dark:text-gray-100 text-base mb-3">§6. Kody zniżkowe i program partnerski</h2>
               <p>Kody zniżkowe są jednorazowe i mogą posiadać datę ważności lub limit użyć. Nie można łączyć kilku kodów jednocześnie. Kod zniżkowy obniża wartość szacunkową Usługi i nie wpływa na ostateczną cenę ustaloną indywidualnie.</p>
+              <p className="mt-2">Kody zniżkowe obejmują wyłącznie wartość bazową Usługi oraz dopłaty za konkretne wymagania technologiczne. <strong>Nie obejmują one usług dodatkowych</strong>, w szczególności Priorytetowej i Natychmiastowej realizacji – dopłaty z tytułu tych usług doliczane są w pełnej wysokości, niezależnie od zastosowanego kodu zniżkowego.</p>
+              <p className="mt-2">
+                Szczegóły dotyczące programu partnerskiego dostępne są w osobnym regulaminie:{' '}
+                <a href="/regulamin/partnerzy" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">Regulamin programu partnerskiego →</a>
+              </p>
             </section>
 
             {/* §7 */}
