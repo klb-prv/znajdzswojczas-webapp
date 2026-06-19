@@ -72,7 +72,7 @@ export default function RegulamingPage() {
             <section>
                              <h2 className="font-bold text-gray-800 dark:text-gray-100 text-base mb-4">§6. Kody zniżkowe i program partnerski</h2>
               <p>Kody zniżkowe są jednorazowe i mogą posiadać datę ważności lub limit użyć. Nie można łączyć kilku kodów jednocześnie. Kod zniżkowy obniża wartość szacunkową Usługi i nie wpływa na ostateczną cenę ustaloną indywidualnie.</p>
-              <p className="mt-3">Kody zniżkowe obejmują wyłącznie wartość bazową Usługi oraz dopłaty za konkretne wymagania technologiczne. <strong>Nie obejmują one usług dodatkowych</strong>, w szczególności Priorytetowej i Natychmiastowej realizacji – dopłaty z tytułu tych usług doliczane są w pełnej wysokości, niezależnie od zastosowanego kodu zniżkowego.</p>
+              <p className="mt-3">Kody zniżkowe obejmują wyłącznie wartość bazową Usługi oraz dopłaty za konkretne wymagania technologiczne. <strong>Nie obejmują one usług dodatkowych</strong> (Priorytetowa i Natychmiastowa realizacja) ani <strong>pakietów usług</strong> – dopłaty z tytułu tych usług doliczane są w pełnej wysokości, niezależnie od zastosowanego kodu zniżkowego.</p>
               <p className="mt-3">W przypadku wykrycia, że Klient zastosował kod rabatowy w sposób niezgodny z jego przeznaczeniem (w szczególności w celu obniżenia ceny usługi dodatkowej wyłączonej z promocji), Realizator Usługi ma prawo <strong>anulować Zgłoszenie</strong> lub <strong>wezwać Klienta do dopłaty</strong> różnicy. Realizacja Usługi zostaje wstrzymana do momentu uregulowania pełnej, prawidłowej kwoty.</p>
               <p className="mt-3">
                 Szczegóły dotyczące programu partnerskiego dostępne są w osobnym regulaminie:{' '}
