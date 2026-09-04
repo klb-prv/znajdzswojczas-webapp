@@ -4,6 +4,7 @@ import { createAdminClient } from '@/lib/supabase/server'
 import { verifyAffiliateSession, AFFILIATE_SESSION_COOKIE } from '@/lib/affiliate-session'
 import { format } from 'date-fns'
 import { pl } from 'date-fns/locale'
+import AffiliateCopyLink from '@/components/AffiliateCopyLink'
 
 const COMMISSION_STATUS: Record<string, { label: string; color: string }> = {
   pending:   { label: 'Oczekuje',     color: 'bg-amber-900/30 text-amber-400 border-amber-800/50' },
@@ -109,20 +110,7 @@ export default async function AffiliateDashboardPage() {
       </div>
 
       {/* Referral link */}
-      <div className="bg-[#111114] border border-[#25252D] rounded-2xl p-6">
-        <h2 className="text-sm font-bold text-[#F5F5F7] mb-3">🔗 Twój link afiliacyjny</h2>
-        <div className="flex items-center gap-3">
-          <div className="flex-1 bg-[#15151A] border border-[#25252D] rounded-xl px-4 py-2.5 text-sm text-[#9A9AA3] font-mono truncate">
-            znajdzswojczas.pl/?ref={affiliate?.referral_code}
-          </div>
-          <button
-            onClick={() => navigator.clipboard.writeText(`https://znajdzswojczas.pl/?ref=${affiliate?.referral_code}`)}
-            className="px-4 py-2.5 bg-[#7C5CFC]/15 text-[#9277FF] rounded-xl text-sm font-medium hover:bg-[#7C5CFC]/25 transition whitespace-nowrap"
-          >
-            📋 Kopiuj
-          </button>
-        </div>
-      </div>
+      {affiliate?.referral_code && <AffiliateCopyLink referralCode={affiliate.referral_code} />}
 
       {/* Recent commissions */}
       <div className="bg-[#111114] border border-[#25252D] rounded-2xl p-6">
