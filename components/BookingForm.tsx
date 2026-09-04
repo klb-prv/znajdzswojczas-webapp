@@ -2,11 +2,11 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { SERVICES, SERVICE_OPTIONS, SERVICE_VARIANTS, OPTION_PRICE, PRIORITY_PRICE, EXTRA_PRIORITY_PRICE, SERVICE_PACKAGES } from '@/lib/services'
+import { SERVICES, SERVICE_VARIANTS, PRIORITY_PRICE, EXTRA_PRIORITY_PRICE } from '@/lib/services'
 import Link from 'next/link'
 
 interface Props {
-  date: string   // YYYY-MM-DD
+  date: string
   onSuccess: () => void
 }
 
@@ -14,17 +14,13 @@ export default function BookingForm({ date, onSuccess }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [viewMode, setViewMode] = useState<'uslugi' | 'pakiety'>('uslugi')
   const [selectedService, setSelectedService] = useState<string | null>(null)
-  const [selectedPackage, setSelectedPackage] = useState<string | null>(null)
   const [selectedVariant, setSelectedVariant] = useState<string | null>(null)
-  const [selectedOptions, setSelectedOptions] = useState<string[]>([])
   const [form, setForm] = useState({ name: '', email: '', description: '', contact_method: 'email' as 'email' | 'discord', discord_nick: '' })
   const [priorityTier, setPriorityTier] = useState<'none' | 'priority' | 'immediate'>('none')
   const [consentPersonal, setConsentPersonal] = useState(false)
   const [consentTerms, setConsentTerms] = useState(false)
 
-  // Kod zniżkowy
   const [discountInput, setDiscountInput]       = useState('')
   const [validatingCode, setValidatingCode]     = useState(false)
   const [discountCodeError, setDiscountCodeError] = useState('')
@@ -35,49 +31,26 @@ export default function BookingForm({ date, onSuccess }: Props) {
   } | null>(null)
 
   const selectedSvc       = SERVICES.find((s) => s.id === selectedService) ?? null
-  const selectedPkg       = SERVICE_PACKAGES.find((p) => p.id === selectedPackage) ?? null
   const availableVariants = selectedService ? (SERVICE_VARIANTS[selectedService] ?? []) : []
   const requiresVariant   = availableVariants.length > 0
   const selectedVarObj    = availableVariants.find((v) => v.id === selectedVariant) ?? null
-  const availableOptions  = selectedService ? (SERVICE_OPTIONS[selectedService] ?? []) : []
-  const hasOptions        = selectedOptions.length > 0
-  const totalSurcharge    = selectedOptions.length * OPTION_PRICE
   const prioritySurcharge = priorityTier === 'priority' ? PRIORITY_PRICE : priorityTier === 'immediate' ? EXTRA_PRIORITY_PRICE : 0
-  const basePrice         = selectedPackage ? 0 : (selectedVarObj?.price ?? selectedSvc?.basePrice ?? 0)
-  const baseAmount        = basePrice + totalSurcharge
+  const basePrice         = selectedVarObj?.price ?? selectedSvc?.basePrice ?? 0
   const discountAmount    = appliedDiscount
     ? appliedDiscount.discount_type === 'percent'
-      ? Math.floor(baseAmount * appliedDiscount.discount_value / 100)
-      : Math.min(appliedDiscount.discount_value, baseAmount)
+      ? Math.floor(basePrice * appliedDiscount.discount_value / 100)
+      : Math.min(appliedDiscount.discount_value, basePrice)
     : 0
-  const finalPrice        = baseAmount - discountAmount + prioritySurcharge
+  const finalPrice        = basePrice - discountAmount + prioritySurcharge
   const descLen           = form.description.length
   const descValid         = descLen >= 100
 
   const handleServiceChange = (id: string) => {
     setSelectedService(id)
-    setSelectedPackage(null)
     setSelectedVariant(null)
-    setSelectedOptions([])
     setAppliedDiscount(null)
     setDiscountInput('')
     setDiscountCodeError('')
-  }
-
-  const handlePackageChange = (id: string) => {
-    setSelectedPackage(id)
-    setSelectedService(null)
-    setSelectedVariant(null)
-    setSelectedOptions([])
-    setAppliedDiscount(null)
-    setDiscountInput('')
-    setDiscountCodeError('')
-  }
-
-  const toggleOption = (opt: string) => {
-    setSelectedOptions((prev) =>
-      prev.includes(opt) ? prev.filter((o) => o !== opt) : [...prev, opt]
-    )
   }
 
   const handleApplyCode = async () => {
@@ -118,12 +91,12 @@ export default function BookingForm({ date, onSuccess }: Props) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    if (!selectedService && !selectedPackage) {
-      setError('Wybierz rodzaj usługi lub pakiet')
+    if (!selectedService) {
+      setError('Wybierz rodzaj usługi')
       return
     }
-    if (selectedService && requiresVariant && !selectedVariant) {
-      setError('Wybierz typ realizacji (np. Single Page lub Web Application)')
+    if (requiresVariant && !selectedVariant) {
+      setError('Wybierz wariant realizacji')
       return
     }
     if (!descValid) {
@@ -132,24 +105,16 @@ export default function BookingForm({ date, onSuccess }: Props) {
     }
     setLoading(true)
 
-    let baseTopic: string
-    if (selectedPackage) {
-      const pkg = SERVICE_PACKAGES.find((p) => p.id === selectedPackage)
-      baseTopic = `Pakiet: ${pkg?.title ?? selectedPackage}`
-    } else {
-      const svc = SERVICES.find((s) => s.id === selectedService)
-      const serviceLabel = svc?.label ?? selectedService ?? ''
-      const variantLabel  = availableVariants.find((v) => v.id === selectedVariant)?.label ?? ''
-      baseTopic = variantLabel ? `${serviceLabel} -${variantLabel}` : serviceLabel
-    }
-    const topicBase = hasOptions
-      ? `${baseTopic} [${selectedOptions.join(', ')}]`
-      : baseTopic
-    const priorityLabel = priorityTier === 'priority' ? ' [Priorytet]' : priorityTier === 'immediate' ? ' [Priorytet - Natychmiast]' : ''
-    const topic = topicBase + priorityLabel
+    const svc = SERVICES.find((s) => s.id === selectedService)
+    const serviceLabel = svc?.label ?? selectedService ?? ''
+    const variantLabel = availableVariants.find((v) => v.id === selectedVariant)?.label ?? ''
+    let baseTopic = variantLabel ? `${serviceLabel} – ${variantLabel}` : serviceLabel
+
+    const priorityLabel = priorityTier === 'priority' ? ' [Priorytet]' : priorityTier === 'immediate' ? ' [Priorytet – Natychmiast]' : ''
+    const topic = baseTopic + priorityLabel
     try {
       const contactSuffix = form.contact_method === 'discord' && form.discord_nick.trim()
-        ? ` [Kontakt: Discord -${form.discord_nick.trim()}]`
+        ? ` [Kontakt: Discord – ${form.discord_nick.trim()}]`
         : ''
       const res = await fetch('/api/reservations', {
         method: 'POST',
@@ -179,7 +144,6 @@ export default function BookingForm({ date, onSuccess }: Props) {
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
 
-      {/* Link do cen */}
       <Link
         href="/uslugi"
         className="block text-center text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium"
@@ -187,91 +151,42 @@ export default function BookingForm({ date, onSuccess }: Props) {
         → Zobacz ceny dostępnych usług
       </Link>
 
-      {/* Przełącznik Usługi / Pakiety */}
       <div>
-        <div className="flex bg-gray-100 dark:bg-gray-800 rounded-xl p-1 mb-3">
-          <button
-            type="button"
-            onClick={() => { setViewMode('uslugi'); setSelectedPackage(null) }}
-            className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all duration-150 cursor-pointer select-none ${
-              viewMode === 'uslugi'
-                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
-                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-            }`}
-          >
-            💻 Usługi
-          </button>
-          <button
-            type="button"
-            onClick={() => { setViewMode('pakiety'); setSelectedService(null) }}
-            className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all duration-150 cursor-pointer select-none ${
-              viewMode === 'pakiety'
-                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
-                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-            }`}
-          >
-            📦 Pakiety
-          </button>
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-3 shadow-sm">
+          <div className="flex flex-col gap-1.5">
+            {SERVICES.map((s) => {
+              const active = selectedService === s.id
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => handleServiceChange(s.id)}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border text-sm font-bold transition-all duration-150 cursor-pointer select-none
+                    ${active
+                      ? 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-200'
+                      : 'bg-white dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-blue-300 hover:shadow-sm'
+                    }`}
+                >
+                  <span className="text-xl leading-none">{s.emoji}</span>
+                  <span className="flex-1 text-left">{s.label}</span>
+                  {s.basePrice > 0 && (
+                    <span className={`text-xs whitespace-nowrap ${active ? 'text-blue-200' : 'text-gray-400'}`}>
+                      od {s.basePrice} zł
+                    </span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
         </div>
-
-        {viewMode === 'uslugi' && (
-          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-3 shadow-sm">
-            <div className="flex flex-col gap-1.5">
-              {SERVICES.map((s) => {
-                const active = selectedService === s.id
-                return (
-                  <button
-                    key={s.id}
-                    type="button"
-                    onClick={() => handleServiceChange(s.id)}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border text-sm font-bold transition-all duration-150 cursor-pointer select-none
-                      ${active
-                        ? 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-200'
-                        : 'bg-white dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-blue-300 hover:shadow-sm'
-                      }`}
-                  >
-                    <span className="text-xl leading-none">{s.emoji}</span>
-                    <span>{s.label}</span>
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        )}
-
-        {viewMode === 'pakiety' && (
-          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-3 shadow-sm">
-            <div className="flex flex-col gap-1.5">
-              {SERVICE_PACKAGES.map((p) => {
-                const active = selectedPackage === p.id
-                return (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => handlePackageChange(p.id)}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border text-sm font-bold transition-all duration-150 cursor-pointer select-none
-                      ${active
-                        ? 'bg-indigo-600 border-indigo-600 text-white shadow-md shadow-indigo-200'
-                        : 'bg-white dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-indigo-300 hover:shadow-sm'
-                      }`}
-                  >
-                    <span className="text-xl leading-none">{p.emoji}</span>
-                    <span>{p.title}</span>
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* Typ realizacji -obowiązkowy radio dla wybranych usług */}
       {availableVariants.length > 0 && (
         <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
           <p className="text-sm font-medium text-gray-700 mb-0.5">
-            Typ realizacji <span className="text-red-500">*</span>
+            Wariant realizacji <span className="text-red-500">*</span>
           </p>
-          <p className="text-xs text-gray-400 mb-3">Wybierz jeden -wymagane</p>
+          <p className="text-xs text-gray-400 mb-3">Wybierz jeden – wymagane</p>
           <div className="flex flex-col sm:flex-row gap-3">
             {availableVariants.map((v) => {
               const active = selectedVariant === v.id
@@ -296,91 +211,34 @@ export default function BookingForm({ date, onSuccess }: Props) {
         </div>
       )}
 
-      {/* Konkretne wymagania technologiczne */}
-      {availableOptions.length > 0 && (
-        <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4">
-          <p className="text-sm font-medium text-gray-700 mb-0.5">Konkretne wymagania</p>
-          <p className="text-xs text-gray-400 mb-3">
-            Opcjonalnie - wybranie opcji dolicza +{OPTION_PRICE} zł do wyceny
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {availableOptions.map((opt) => {
-              const checked = selectedOptions.includes(opt)
-              return (
-                <button
-                  key={opt}
-                  type="button"
-                  onClick={() => toggleOption(opt)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-medium transition-all duration-150 cursor-pointer select-none
-                    ${checked
-                      ? 'bg-indigo-600 border-indigo-600 text-white shadow-md shadow-indigo-100'
-                      : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-300 hover:shadow-sm'
-                    }`}
-                >
-                  {checked && <span>✓</span>}
-                  {opt}
-                  {checked && <span className="text-indigo-300">+{OPTION_PRICE} zł</span>}
-                </button>
-              )
-            })}
-          </div>
-          {!hasOptions && (
-            <p className="text-xs text-gray-400 mt-2.5">
-              Nie wybrano dodatkowych wymagań - wycena bez zmian
-            </p>
-          )}
-        </div>
-      )}
-
-      {/* Wstępna wycena / paragon */}
-      {(selectedSvc || selectedPkg) && (
+      {(selectedSvc) && (
         <div className="border border-dashed border-gray-300 rounded-2xl p-4 bg-white font-mono text-xs">
           <p className="text-center text-gray-500 mb-3 uppercase tracking-widest text-[10px] font-semibold">
             ── Wstępna wycena ──
           </p>
           <div className="space-y-1.5">
-            {selectedPkg && (
+            <>
               <div className="flex justify-between text-gray-700">
-                <span className="font-medium">📦 {selectedPkg.title}</span>
-                <span className="text-gray-500">{selectedPkg.priceRange}</span>
+                <span className="font-medium">{selectedSvc.label}</span>
+                <span className="text-gray-500">
+                  {selectedVarObj ? `od ${selectedVarObj.price},00 zł` : selectedSvc.basePrice > 0 ? `od ${selectedSvc.basePrice},00 zł` : 'wycena indywidualna'}
+                </span>
               </div>
-            )}
-            {selectedSvc && (
-              <>
-                <div className="flex justify-between text-gray-700">
-                  <span className="font-medium">{selectedSvc.label}</span>
-                  <span className="text-gray-500">
-                    {selectedVarObj ? '-' : `od ${selectedSvc.basePrice},00 zł`}
-                  </span>
+              {selectedVarObj && (
+                <div className="flex justify-between text-gray-500 pl-2">
+                  <span className="before:content-['└_'] before:text-gray-300">{selectedVarObj.label}</span>
+                  <span className="text-gray-500">od {selectedVarObj.price},00 zł</span>
                 </div>
-                {selectedVarObj && (
-                  <div className="flex justify-between text-gray-500 pl-2">
-                    <span className="before:content-['└_'] before:text-gray-300">{selectedVarObj.label}</span>
-                    <span className="text-gray-500">od {selectedVarObj.price},00 zł</span>
-                  </div>
-                )}
+              )}
+              {selectedSvc.basePrice > 0 && (
                 <div className="flex justify-between text-gray-400 text-[10px] pl-1">
                   <span>({selectedSvc.priceNote})</span>
                 </div>
-              </>
-            )}
-
-            {selectedOptions.map((opt) => (
-              <div key={opt} className="flex justify-between text-gray-500">
-                <span className="pl-2 before:content-['+_'] before:text-gray-300">{opt}</span>
-                <span>+{OPTION_PRICE},00 zł</span>
-              </div>
-            ))}
+              )}
+            </>
           </div>
 
-          {/* Podsumowanie */}
           <div className="border-t border-dashed border-gray-200 mt-3 pt-2.5 space-y-1">
-            {hasOptions && (
-              <div className="flex justify-between text-gray-500">
-                <span>Dopłata za wymagania</span>
-                <span>+{totalSurcharge},00 zł</span>
-              </div>
-            )}
             {appliedDiscount && (
               <div className="flex justify-between text-green-600">
                 <span>Kod {appliedDiscount.code}</span>
@@ -407,25 +265,24 @@ export default function BookingForm({ date, onSuccess }: Props) {
             <div className="flex justify-between font-bold text-gray-800 text-sm">
               <span>RAZEM (wstępnie)</span>
               <span className={appliedDiscount ? 'text-green-600' : 'text-blue-600'}>
-                {selectedPkg ? selectedPkg.priceRange : `od ${finalPrice},00 zł`}
+                {selectedSvc.basePrice > 0 ? `od ${finalPrice},00 zł` : 'wycena indywidualna'}
               </span>
             </div>
           </div>
 
           <p className="text-center text-gray-300 mt-3 text-[10px]">
-            Ostateczna cena ustalana indywidualnie po konsultacji i realizacji zgłoszenia
+            Ostateczna cena ustalana indywidualnie przed rozpoczęciem realizacji
           </p>
         </div>
       )}
 
-      {/* Kod zniżkowy */}
       {selectedSvc && (
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Kod zniżkowy</label>
           {appliedDiscount ? (
             <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-3 py-2">
               <span className="text-green-600 text-sm font-medium flex-1">
-                ✓ {appliedDiscount.code} -{appliedDiscount.discount_type === 'percent'
+                ✓ {appliedDiscount.code} –{appliedDiscount.discount_type === 'percent'
                   ? `−${appliedDiscount.discount_value}% (oszczędzasz ${discountAmount} zł)`
                   : `−${discountAmount} zł`
                 }
@@ -465,7 +322,6 @@ export default function BookingForm({ date, onSuccess }: Props) {
         </div>
       )}
 
-      {/* Priorytet / Natychmiast */}
       <div className="grid grid-cols-2 gap-3">
         <button
           type="button"
@@ -507,7 +363,6 @@ export default function BookingForm({ date, onSuccess }: Props) {
         </button>
       </div>
 
-      {/* Dane osobowe */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Imię i nazwisko</label>
         <input
@@ -529,11 +384,10 @@ export default function BookingForm({ date, onSuccess }: Props) {
           required
         />
         <p className="text-xs text-gray-400 mt-1">
-          📧 Adres email jest wymagany -wysyłamy na niego informacje o statusie zgłoszenia.
+          📧 Adres email jest wymagany – wysyłamy na niego informacje o statusie zgłoszenia.
         </p>
       </div>
 
-      {/* Forma kontaktu */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">Preferowana forma kontaktu</label>
         <div className="flex gap-3">
@@ -577,7 +431,6 @@ export default function BookingForm({ date, onSuccess }: Props) {
         )}
       </div>
 
-      {/* Opis */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Szczegółowy opis problemu
@@ -623,7 +476,6 @@ export default function BookingForm({ date, onSuccess }: Props) {
         </p>
       )}
 
-      {/* Zgody */}
       <div className="space-y-3 border border-gray-100 rounded-2xl p-4 bg-gray-50">
         <label className="flex items-start gap-3 cursor-pointer group">
           <input
@@ -633,7 +485,7 @@ export default function BookingForm({ date, onSuccess }: Props) {
             className="mt-0.5 w-4 h-4 flex-shrink-0 accent-blue-600 cursor-pointer"
           />
           <span className="text-xs text-gray-600 leading-relaxed">
-            <strong className="text-gray-800">Składam zgłoszenie wyłącznie jako osoba fizyczna</strong> - oświadczam, że nie działam w imieniu ani na rzecz osoby prawnej (np. spółki z o.o., spółki akcyjnej, fundacji, stowarzyszenia) ani innej jednostki organizacyjnej. Usługa przeznaczona jest wyłącznie dla osób fizycznych, w celach prywatnych.
+            <strong className="text-gray-800">Składam zgłoszenie wyłącznie jako osoba fizyczna</strong> – oświadczam, że nie działam w imieniu ani na rzecz osoby prawnej (np. spółki z o.o., spółki akcyjnej, fundacji, stowarzyszenia) ani innej jednostki organizacyjnej. Usługa przeznaczona jest wyłącznie dla osób fizycznych, w celach prywatnych.
           </span>
         </label>
         <label className="flex items-start gap-3 cursor-pointer group">
@@ -653,14 +505,14 @@ export default function BookingForm({ date, onSuccess }: Props) {
 
       <button
         type="submit"
-        disabled={loading || (selectedService && requiresVariant && !selectedVariant) || (!selectedService && !selectedPackage) || !consentPersonal || !consentTerms}
+        disabled={loading || (requiresVariant && !selectedVariant) || !selectedService || !consentPersonal || !consentTerms}
         className="w-full bg-blue-600 text-white rounded-xl py-3 text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none transition shadow-lg shadow-blue-200 active:scale-[0.98]"
       >
-        {loading ? 'Wysyłanie...' : hasOptions ? 'Przygotuj zlecenie →' : 'Wyślij zgłoszenie →'}
+        {loading ? 'Wysyłanie...' : 'Wyślij zgłoszenie →'}
       </button>
       {requiresVariant && !selectedVariant && (
         <p className="text-xs text-gray-400 text-center -mt-2">
-          Wybierz typ realizacji, aby kontynuować
+          Wybierz wariant realizacji, aby kontynuować
         </p>
       )}
 

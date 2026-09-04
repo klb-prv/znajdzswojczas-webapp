@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { format, parseISO } from 'date-fns'
 import { pl } from 'date-fns/locale'
-import { SERVICES, SERVICE_OPTIONS } from '@/lib/services'
+import { SERVICES } from '@/lib/services'
 
 interface Props {
   reservationId: string
@@ -35,21 +35,9 @@ const PRESET_REASONS: string[] = [
 
 const CUSTOM_SENTINEL = 'Własny powód…'
 
-function getServiceIdFromTopic(topic: string): string | null {
-  const base = topic.replace(/ \[[^\]]+\]/g, '').trim()
-  const withoutVariant = base.replace(/ -.*$/, '').trim()
-  return SERVICES.find(s => s.label === withoutVariant)?.id ?? null
-}
 
-function getCurrentOptionsFromTopic(topic: string): string[] {
-  const stripped = topic
-    .replace(/ \[Priorytet\]/g, '')
-    .replace(/ \[Kontakt: Discord[^\]]+\]/g, '')
-    .trim()
-  const match = stripped.match(/ \[([^\]]+)\]$/)
-  if (!match) return []
-  return match[1].split(', ').filter(Boolean)
-}
+
+
 
 const CANCEL_REASONS: string[] = [
   'Brak możliwości realizacji w terminie',
@@ -92,10 +80,7 @@ export default function AdminReservationActions({ reservationId, reservationNumb
   const [confirmPaymentInput, setConfirmPaymentInput] = useState('')
   const [confirmPaymentLoading, setConfirmPaymentLoading] = useState(false)
   const [confirmPaymentError, setConfirmPaymentError] = useState('')
-  const [showOptionsDialog, setShowOptionsDialog] = useState(false)
-  const [editOptions, setEditOptions] = useState<string[]>([])
-  const [optionsLoading, setOptionsLoading] = useState(false)
-  const [optionsError, setOptionsError] = useState('')
+
 
   const resetState = () => {
     setMode('idle')
@@ -109,28 +94,7 @@ export default function AdminReservationActions({ reservationId, reservationNumb
     setError('')
   }
 
-  const serviceIdFromTopic = getServiceIdFromTopic(currentTopic)
-  const availableOptionsForTopic = serviceIdFromTopic ? (SERVICE_OPTIONS[serviceIdFromTopic] ?? []) : []
 
-  const handleUpdateOptions = async () => {
-    setOptionsError('')
-    setOptionsLoading(true)
-    try {
-      const res = await fetch(`/api/admin/reservations/${reservationId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'update_options', new_options: editOptions }),
-      })
-      const data = await res.json()
-      if (!res.ok) { setOptionsError(data.error); return }
-      setShowOptionsDialog(false)
-      router.refresh()
-    } catch {
-      setOptionsError('Błąd połączenia')
-    } finally {
-      setOptionsLoading(false)
-    }
-  }
 
   const effectiveReason =
     mode === 'change_topic'
@@ -272,18 +236,6 @@ export default function AdminReservationActions({ reservationId, reservationNumb
             >
               Zmień kategorię
             </button>
-            {availableOptionsForTopic.length > 0 && (
-              <button
-                onClick={() => {
-                  setEditOptions(getCurrentOptionsFromTopic(currentTopic))
-                  setOptionsError('')
-                  setShowOptionsDialog(true)
-                }}
-                className="w-full border border-violet-200 text-violet-700 rounded-lg py-2 text-sm font-medium hover:bg-violet-50 transition"
-              >
-                📋 Edytuj konkretne wymagania
-              </button>
-            )}
             {currentStatus !== 'in_progress' && (
               <button
                 onClick={() => { setEstimatedDays(''); setStartWorkError(''); setShowStartWorkDialog(true) }}
@@ -666,65 +618,7 @@ export default function AdminReservationActions({ reservationId, reservationNumb
         </div>
       )}
 
-      {showOptionsDialog && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
-          onClick={(e) => { if (e.target === e.currentTarget) setShowOptionsDialog(false) }}
-        >
-          <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 w-full max-w-sm p-6">
-            <div className="text-center mb-5">
-              <div className="text-3xl mb-2">📋</div>
-              <h2 className="text-lg font-bold text-gray-900">Konkretne wymagania</h2>
-              <p className="text-sm text-gray-500 mt-1">Zaznacz wymagania do doliczonej opłaty</p>
-            </div>
-            <div className="space-y-2 mb-5">
-              {availableOptionsForTopic.map((opt) => {
-                const checked = editOptions.includes(opt)
-                return (
-                  <label
-                    key={opt}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border cursor-pointer transition ${
-                      checked
-                        ? 'bg-violet-50 border-violet-300 text-violet-800'
-                        : 'border-gray-200 text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={() =>
-                        setEditOptions((prev) =>
-                          prev.includes(opt) ? prev.filter((o) => o !== opt) : [...prev, opt]
-                        )
-                      }
-                      className="accent-violet-600 w-4 h-4"
-                    />
-                    <span className="text-sm font-medium">{opt}</span>
-                  </label>
-                )
-              })}
-            </div>
-            {optionsError && (
-              <p className="text-sm text-red-500 bg-red-50 rounded-xl px-3 py-2 text-center mb-4">{optionsError}</p>
-            )}
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowOptionsDialog(false)}
-                className="flex-1 border border-gray-200 text-gray-600 rounded-xl py-2.5 text-sm hover:bg-gray-50 transition"
-              >
-                Anuluj
-              </button>
-              <button
-                onClick={handleUpdateOptions}
-                disabled={optionsLoading}
-                className="flex-1 bg-violet-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-violet-700 disabled:opacity-50 transition"
-              >
-                {optionsLoading ? 'Zapisywanie...' : 'Zapisz'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
     </>
   )
 }
