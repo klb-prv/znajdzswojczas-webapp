@@ -39,6 +39,12 @@ export default async function AdminPage() {
             <Link href="/admin/dates" className="text-blue-600 hover:underline">
               Blokady terminów →
             </Link>
+            <Link href="/admin/affiliates" className="text-purple-600 hover:underline">
+              Partnerzy →
+            </Link>
+            <Link href="/admin/payouts" className="text-amber-600 hover:underline">
+              Wypłaty →
+            </Link>
             <Link href="/admin/rodo" className="text-emerald-600 hover:underline">
               RODO →
             </Link>
