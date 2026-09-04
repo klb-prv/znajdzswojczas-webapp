@@ -128,3 +128,11 @@ export interface AffiliatePromoCode {
   usage_count: number
   created_at: string
 }
+
+export interface AffiliateDiscountCodeAssignment {
+  id: string
+  affiliate_id: string
+  discount_code_id: string
+  affiliate_commission_rate: number
+  created_at: string
+}

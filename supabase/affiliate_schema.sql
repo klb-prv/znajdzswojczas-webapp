@@ -86,3 +86,18 @@ create table affiliate_clicks (
 );
 
 alter table affiliate_clicks enable row level security;
+
+-- ============================================================
+-- AFFILIATE DISCOUNT CODE ASSIGNMENTS
+-- Links existing discount_codes to affiliates
+-- ============================================================
+create table affiliate_discount_code_assignments (
+  id uuid primary key default gen_random_uuid(),
+  affiliate_id uuid not null references affiliates(id) on delete cascade,
+  discount_code_id uuid not null references discount_codes(id) on delete cascade,
+  affiliate_commission_rate integer not null default 3 check (affiliate_commission_rate > 0 and affiliate_commission_rate <= 100),
+  created_at timestamptz not null default now(),
+  unique(discount_code_id)
+);
+
+alter table affiliate_discount_code_assignments enable row level security;

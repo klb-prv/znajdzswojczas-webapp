@@ -51,12 +51,25 @@ interface PromoCode {
   usage_count: number
 }
 
+interface DiscountCodeAssignment {
+  id: string
+  discount_code_id: string
+  code: string
+  discount_type: string
+  discount_value: number
+  active: boolean
+  used_count: number
+  affiliate_commission_rate: number
+}
+
 interface Props {
   affiliate: Affiliate
   stats: Stats
   referrals: Referral[]
   payouts: Payout[]
   promoCodes: PromoCode[]
+  discountCodeAssignments: DiscountCodeAssignment[]
+  availableDiscountCodes: { id: string; code: string; discount_type: string; discount_value: number; active: boolean }[]
 }
 
 const REFERRAL_STATUS: Record<string, { label: string; color: string }> = {
@@ -81,7 +94,7 @@ const PROMO_STATUS: Record<string, { label: string; color: string }> = {
 
 const RATE_OPTIONS = [3, 5, 10]
 
-export default function AdminAffiliateDetail({ affiliate, stats, referrals, payouts, promoCodes }: Props) {
+export default function AdminAffiliateDetail({ affiliate, stats, referrals, payouts, promoCodes, discountCodeAssignments, availableDiscountCodes }: Props) {
   const router = useRouter()
   const [copied, setCopied] = useState(false)
 
@@ -99,6 +112,22 @@ export default function AdminAffiliateDetail({ affiliate, stats, referrals, payo
   const [editRateLoading, setEditRateLoading] = useState(false)
 
   const [actionLoading, setActionLoading] = useState<string | null>(null)
+
+  const [showAssignDiscountModal, setShowAssignDiscountModal] = useState(false)
+  const [assignDiscountCodeId, setAssignDiscountCodeId] = useState('')
+  const [assignCommissionRate, setAssignCommissionRate] = useState(3)
+  const [assignDiscountLoading, setAssignDiscountLoading] = useState(false)
+  const [assignDiscountError, setAssignDiscountError] = useState('')
+
+  const [showEditDiscountRateModal, setShowEditDiscountRateModal] = useState(false)
+  const [editDiscountRateId, setEditDiscountRateId] = useState('')
+  const [editDiscountCommissionRate, setEditDiscountCommissionRate] = useState(3)
+  const [editDiscountRateLoading, setEditDiscountRateLoading] = useState(false)
+
+  const [showUnassignDiscountModal, setShowUnassignDiscountModal] = useState(false)
+  const [unassignDiscountId, setUnassignDiscountId] = useState('')
+  const [unassignDiscountCode, setUnassignDiscountCode] = useState('')
+  const [unassignDiscountLoading, setUnassignDiscountLoading] = useState(false)
 
   const copyLink = () => {
     navigator.clipboard.writeText(`https://znajdzswojczas.pl/?ref=${affiliate.referral_code}`)
@@ -185,6 +214,73 @@ export default function AdminAffiliateDetail({ affiliate, stats, referrals, payo
       router.refresh()
     } catch {} finally {
       setEditRateLoading(false)
+    }
+  }
+
+  const handleAssignDiscount = async () => {
+    if (!assignDiscountCodeId) return
+    setAssignDiscountLoading(true)
+    setAssignDiscountError('')
+    try {
+      const res = await fetch('/api/admin/affiliate-discount-codes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          affiliate_id: affiliate.id,
+          discount_code_id: assignDiscountCodeId,
+          affiliate_commission_rate: assignCommissionRate,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setAssignDiscountError(data.error ?? 'Błąd')
+        return
+      }
+      setShowAssignDiscountModal(false)
+      setAssignDiscountCodeId('')
+      setAssignCommissionRate(3)
+      router.refresh()
+    } catch {
+      setAssignDiscountError('Błąd połączenia')
+    } finally {
+      setAssignDiscountLoading(false)
+    }
+  }
+
+  const handleEditDiscountRate = async () => {
+    setEditDiscountRateLoading(true)
+    try {
+      await fetch('/api/admin/affiliate-discount-codes', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'update_rate',
+          id: editDiscountRateId,
+          affiliate_commission_rate: editDiscountCommissionRate,
+        }),
+      })
+      setShowEditDiscountRateModal(false)
+      router.refresh()
+    } catch {} finally {
+      setEditDiscountRateLoading(false)
+    }
+  }
+
+  const handleUnassignDiscount = async () => {
+    setUnassignDiscountLoading(true)
+    try {
+      await fetch('/api/admin/affiliate-discount-codes', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'unassign',
+          id: unassignDiscountId,
+        }),
+      })
+      setShowUnassignDiscountModal(false)
+      router.refresh()
+    } catch {} finally {
+      setUnassignDiscountLoading(false)
     }
   }
 
@@ -332,6 +428,72 @@ export default function AdminAffiliateDetail({ affiliate, stats, referrals, payo
           </div>
         ) : (
           <p className="text-sm text-gray-400 text-center py-4">Brak kodów promocyjnych</p>
+        )}
+      </div>
+
+      {/* Discount code assignments */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-semibold text-gray-700">🎟️ Przypisane kody rabatowe</h2>
+          <button
+            onClick={() => { setAssignDiscountCodeId(''); setAssignCommissionRate(3); setAssignDiscountError(''); setShowAssignDiscountModal(true) }}
+            className="text-xs px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition font-medium"
+          >
+            + Przypisz istniejący kod
+          </button>
+        </div>
+        {discountCodeAssignments.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100">
+                  {['Kod', 'Zniżka klienta', 'Prowizja', 'Status kodu', 'Użycia', 'Akcje'].map((h) => (
+                    <th key={h} className="text-left px-3 py-2 text-gray-500 font-medium text-xs">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {discountCodeAssignments.map((a) => {
+                  const discLabel = a.discount_type === 'percent' ? `${a.discount_value}%` : `${a.discount_value} zł`
+                  const statusColor = a.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                  const statusLabel = a.active ? 'Aktywny' : 'Nieaktywny'
+                  return (
+                    <tr key={a.id} className="border-b border-gray-50">
+                      <td className="px-3 py-2.5 font-mono font-medium text-gray-800">{a.code}</td>
+                      <td className="px-3 py-2.5 text-gray-600">{discLabel}</td>
+                      <td className="px-3 py-2.5 text-gray-600">{a.affiliate_commission_rate}%</td>
+                      <td className="px-3 py-2.5">
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${statusColor}`}>
+                          {statusLabel}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2.5 text-gray-500">{a.used_count}</td>
+                      <td className="px-3 py-2.5">
+                        <div className="flex flex-wrap gap-1.5">
+                          <button
+                            onClick={() => { setEditDiscountRateId(a.id); setEditDiscountCommissionRate(a.affiliate_commission_rate); setShowEditDiscountRateModal(true) }}
+                            className="text-xs px-2 py-0.5 rounded-lg border border-indigo-200 text-indigo-600 hover:bg-indigo-50 transition font-medium"
+                          >
+                            Edytuj prowizję
+                          </button>
+                          <button
+                            onClick={() => { setUnassignDiscountId(a.id); setUnassignDiscountCode(a.code); setShowUnassignDiscountModal(true) }}
+                            className="text-xs px-2 py-0.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition font-medium"
+                          >
+                            Odłącz
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="text-sm text-gray-400 text-center py-4">Brak przypisanych kodów rabatowych</p>
         )}
       </div>
 
@@ -504,6 +666,137 @@ export default function AdminAffiliateDetail({ affiliate, stats, referrals, payo
               </button>
               <button onClick={handleUpdateRate} disabled={editRateLoading} className="flex-1 bg-indigo-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 transition">
                 {editRateLoading ? 'Zapisywanie…' : 'Zapisz'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Assign discount code modal */}
+      {showAssignDiscountModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={(e) => { if (e.target === e.currentTarget) setShowAssignDiscountModal(false) }}>
+          <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 w-full max-w-sm p-6">
+            <div className="text-center mb-5">
+              <div className="text-3xl mb-2">🎟️</div>
+              <h2 className="text-lg font-bold text-gray-900">Przypisz kod rabatowy</h2>
+            </div>
+            <div className="mb-4">
+              <label className="block text-xs text-gray-500 mb-1">Wybierz kod rabatowy</label>
+              <select
+                value={assignDiscountCodeId}
+                onChange={(e) => setAssignDiscountCodeId(e.target.value)}
+                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Wybierz kod…</option>
+                {availableDiscountCodes.map((dc) => (
+                  <option key={dc.id} value={dc.id}>
+                    {dc.code} — {dc.discount_type === 'percent' ? `${dc.discount_value}%` : `${dc.discount_value} zł`}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="mb-4">
+              <label className="block text-xs text-gray-500 mb-1">Prowizja afiliacyjna</label>
+              <div className="flex gap-2">
+                {RATE_OPTIONS.map((r) => (
+                  <button
+                    key={`assign-comm-${r}`}
+                    onClick={() => setAssignCommissionRate(r)}
+                    className={`flex-1 py-2 rounded-xl text-sm font-medium transition border ${
+                      assignCommissionRate === r
+                        ? 'bg-blue-600 text-white border-blue-600'
+                        : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    {r}%
+                  </button>
+                ))}
+              </div>
+            </div>
+            {assignDiscountCodeId && (
+              <div className="mb-4 bg-gray-50 rounded-xl p-3 text-xs text-gray-500">
+                {(() => {
+                  const selected = availableDiscountCodes.find((dc) => dc.id === assignDiscountCodeId)
+                  if (!selected) return null
+                  return (
+                    <div className="space-y-1">
+                      <div>Kod: <span className="font-mono font-medium text-gray-700">{selected.code}</span></div>
+                      <div>Zniżka: <span className="font-medium text-gray-700">{selected.discount_type === 'percent' ? `${selected.discount_value}%` : `${selected.discount_value} zł`}</span></div>
+                      <div>Prowizja: <span className="font-medium text-gray-700">{assignCommissionRate}%</span></div>
+                    </div>
+                  )
+                })()}
+              </div>
+            )}
+            {assignDiscountError && <p className="text-sm text-red-500 bg-red-50 rounded-xl px-3 py-2 text-center mb-4">{assignDiscountError}</p>}
+            <div className="flex gap-3">
+              <button onClick={() => setShowAssignDiscountModal(false)} className="flex-1 border border-gray-200 text-gray-600 rounded-xl py-2.5 text-sm hover:bg-gray-50 transition">
+                Anuluj
+              </button>
+              <button onClick={handleAssignDiscount} disabled={assignDiscountLoading || !assignDiscountCodeId} className="flex-1 bg-blue-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 transition">
+                {assignDiscountLoading ? 'Przypisywanie…' : 'Przypisz kod'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit discount rate modal */}
+      {showEditDiscountRateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={(e) => { if (e.target === e.currentTarget) setShowEditDiscountRateModal(false) }}>
+          <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 w-full max-w-sm p-6">
+            <div className="text-center mb-5">
+              <div className="text-3xl mb-2">✏️</div>
+              <h2 className="text-lg font-bold text-gray-900">Edytuj prowizję</h2>
+            </div>
+            <div className="mb-4">
+              <label className="block text-xs text-gray-500 mb-1">Prowizja afiliacyjna</label>
+              <div className="flex gap-2">
+                {RATE_OPTIONS.map((r) => (
+                  <button
+                    key={`edit-dc-comm-${r}`}
+                    onClick={() => setEditDiscountCommissionRate(r)}
+                    className={`flex-1 py-2 rounded-xl text-sm font-medium transition border ${
+                      editDiscountCommissionRate === r
+                        ? 'bg-indigo-600 text-white border-indigo-600'
+                        : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    {r}%
+                  </button>
+                ))}
+              </div>
+            </div>
+            <p className="text-xs text-gray-400 text-center mb-4">Zmiana dotyczy tylko nowych transakcji</p>
+            <div className="flex gap-3">
+              <button onClick={() => setShowEditDiscountRateModal(false)} className="flex-1 border border-gray-200 text-gray-600 rounded-xl py-2.5 text-sm hover:bg-gray-50 transition">
+                Anuluj
+              </button>
+              <button onClick={handleEditDiscountRate} disabled={editDiscountRateLoading} className="flex-1 bg-indigo-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 transition">
+                {editDiscountRateLoading ? 'Zapisywanie…' : 'Zapisz'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Unassign discount confirmation modal */}
+      {showUnassignDiscountModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={(e) => { if (e.target === e.currentTarget) setShowUnassignDiscountModal(false) }}>
+          <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 w-full max-w-sm p-6">
+            <div className="text-center mb-5">
+              <div className="text-3xl mb-2">⚠️</div>
+              <h2 className="text-lg font-bold text-gray-900">Odłącz kod rabatowy</h2>
+            </div>
+            <p className="text-sm text-gray-500 text-center mb-4">
+              Czy na pewno chcesz odłączyć kod <span className="font-mono font-medium text-gray-700">{unassignDiscountCode}</span> od tego partnera?
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => setShowUnassignDiscountModal(false)} className="flex-1 border border-gray-200 text-gray-600 rounded-xl py-2.5 text-sm hover:bg-gray-50 transition">
+                Anuluj
+              </button>
+              <button onClick={handleUnassignDiscount} disabled={unassignDiscountLoading} className="flex-1 bg-red-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-red-700 disabled:opacity-50 transition">
+                {unassignDiscountLoading ? 'Odłączanie…' : 'Odłącz'}
               </button>
             </div>
           </div>

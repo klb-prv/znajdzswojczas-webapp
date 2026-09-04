@@ -20,6 +20,7 @@ export default async function AffiliateCodesPage() {
   const supabase = createAdminClient()
 
   let codes: { id: string; code: string; client_discount_rate: number; affiliate_commission_rate: number; status: string; usage_count: number; created_at: string }[] = []
+  let discountAssignments: { id: string; code: string; discount_type: string; discount_value: number; affiliate_commission_rate: number; used_count: number }[] = []
 
   try {
     const { data } = await supabase
@@ -28,6 +29,24 @@ export default async function AffiliateCodesPage() {
       .eq('affiliate_id', affiliateId)
       .order('created_at', { ascending: false }) as { data: { id: string; code: string; client_discount_rate: number; affiliate_commission_rate: number; status: string; usage_count: number; created_at: string }[] | null }
     codes = data ?? []
+
+    const { data: dcData } = await supabase
+      .from('affiliate_discount_code_assignments')
+      .select('id, affiliate_commission_rate, discount_codes(id, code, discount_type, discount_value, used_count)')
+      .eq('affiliate_id', affiliateId)
+      .order('created_at', { ascending: false })
+
+    discountAssignments = (dcData ?? []).map((row: Record<string, unknown>) => {
+      const dc = row.discount_codes as Record<string, unknown> | null
+      return {
+        id: row.id as string,
+        code: (dc?.code as string) ?? '',
+        discount_type: (dc?.discount_type as string) ?? '',
+        discount_value: (dc?.discount_value as number) ?? 0,
+        affiliate_commission_rate: row.affiliate_commission_rate as number,
+        used_count: (dc?.used_count as number) ?? 0,
+      }
+    })
   } catch {}
 
   return (
@@ -73,6 +92,54 @@ export default async function AffiliateCodesPage() {
         ) : (
           <div className="text-center py-8 text-[#555] text-sm">
             Nie masz jeszcze przypisanych kodów promocyjnych. Skontaktuj się z administratorem.
+          </div>
+        )}
+      </div>
+
+      <div className="bg-[#111114] border border-[#25252D] rounded-2xl p-6">
+        <h2 className="text-lg font-semibold text-[#F5F5F7] mb-2">🎟️ Przypisane kody rabatowe</h2>
+        <p className="text-sm text-[#9A9AA3] mb-4">
+          Kody te zostały przypisane przez administratora.
+        </p>
+
+        {discountAssignments.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-[#25252D]">
+                  {['Kod', 'Zniżka', 'Twoja prowizja', 'Użycia', 'Akcje'].map((h) => (
+                    <th key={h} className="text-left px-3 py-2 text-[#555] font-medium text-xs">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {discountAssignments.map((a) => {
+                  const discLabel = a.discount_type === 'percent' ? `${a.discount_value}%` : `${a.discount_value} zł`
+                  return (
+                    <tr key={a.id} className="border-b border-[#25252D]/50">
+                      <td className="px-3 py-2.5 font-mono font-medium text-[#F5F5F7]">{a.code}</td>
+                      <td className="px-3 py-2.5 text-[#9A9AA3]">{discLabel}</td>
+                      <td className="px-3 py-2.5 text-[#9A9AA3]">{a.affiliate_commission_rate}%</td>
+                      <td className="px-3 py-2.5 text-[#555]">{a.used_count}</td>
+                      <td className="px-3 py-2.5">
+                        <button
+                          onClick={() => navigator.clipboard.writeText(a.code)}
+                          className="px-3 py-1.5 bg-[#7C5CFC]/15 text-[#9277FF] rounded-lg text-xs font-medium hover:bg-[#7C5CFC]/25 transition"
+                        >
+                          📋 Kopiuj
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="text-center py-8 text-[#555] text-sm">
+            Nie masz jeszcze przypisanych kodów rabatowych.
           </div>
         )}
       </div>
