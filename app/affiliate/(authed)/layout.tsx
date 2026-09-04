@@ -18,11 +18,18 @@ export default async function AffiliateAuthedLayout({ children }: { children: Re
   }
 
   const supabase = createAdminClient()
-  const { data: affiliate } = await supabase
-    .from('affiliates')
-    .select('id, login, name, referral_code, commission_percent')
-    .eq('id', affiliateId)
-    .single() as { data: { id: string; login: string; name: string; referral_code: string; commission_percent: number } | null }
+
+  let affiliate: { id: string; login: string; name: string; referral_code: string; commission_percent: number } | null = null
+  try {
+    const result = await supabase
+      .from('affiliates')
+      .select('id, login, name, referral_code, commission_percent')
+      .eq('id', affiliateId)
+      .single()
+    affiliate = result.data
+  } catch {
+    redirect('/affiliate/login')
+  }
 
   if (!affiliate) {
     redirect('/affiliate/login')

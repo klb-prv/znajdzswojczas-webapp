@@ -23,31 +23,33 @@ export default async function AffiliatePayoutsPage() {
 
   const supabase = createAdminClient()
 
-  const { data: commissions } = await supabase
-    .from('affiliate_commissions')
-    .select('commission_amount, status')
-    .eq('affiliate_id', affiliateId) as { data: { commission_amount: number; status: string }[] | null }
+  let commissions: { commission_amount: number; status: string }[] = []
+  let payouts: { id: string; amount: number; status: string; rejection_reason: string | null; created_at: string }[] = []
+  let totalAvailable = 0
+  let totalPaid = 0
+  let reserved = 0
+  let available = 0
 
-  const { data: payouts } = await supabase
-    .from('affiliate_payouts')
-    .select('*')
-    .eq('affiliate_id', affiliateId)
-    .order('created_at', { ascending: false }) as { data: { id: string; amount: number; status: string; rejection_reason: string | null; created_at: string }[] | null }
+  try {
+    const { data: commData } = await supabase
+      .from('affiliate_commissions')
+      .select('commission_amount, status')
+      .eq('affiliate_id', affiliateId) as { data: { commission_amount: number; status: string }[] | null }
 
-  const totalAvailable = commissions
-    ?.filter((c) => c.status === 'available')
-    .reduce((sum, c) => sum + Number(c.commission_amount), 0) ?? 0
+    const { data: payoutData } = await supabase
+      .from('affiliate_payouts')
+      .select('*')
+      .eq('affiliate_id', affiliateId)
+      .order('created_at', { ascending: false }) as { data: { id: string; amount: number; status: string; rejection_reason: string | null; created_at: string }[] | null }
 
-  const totalPaid = payouts
-    ?.filter((p) => p.status === 'paid')
-    .reduce((sum, p) => sum + Number(p.amount), 0) ?? 0
+    commissions = commData ?? []
+    payouts = payoutData ?? []
 
-  const pendingPayouts = payouts
-    ?.filter((p) => p.status === 'pending' || p.status === 'approved')
-    .reduce((sum, p) => sum + Number(p.amount), 0) ?? 0
-
-  const reserved = pendingPayouts
-  const available = Math.max(0, totalAvailable - reserved)
+    totalAvailable = commissions.filter((c) => c.status === 'available').reduce((sum, c) => sum + Number(c.commission_amount), 0)
+    totalPaid = payouts.filter((p) => p.status === 'paid').reduce((sum, p) => sum + Number(p.amount), 0)
+    reserved = payouts.filter((p) => p.status === 'pending' || p.status === 'approved').reduce((sum, p) => sum + Number(p.amount), 0)
+    available = Math.max(0, totalAvailable - reserved)
+  } catch {}
 
   return (
     <div className="max-w-3xl mx-auto space-y-8">

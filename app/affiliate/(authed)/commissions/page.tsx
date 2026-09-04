@@ -23,11 +23,16 @@ export default async function AffiliateCommissionsPage() {
 
   const supabase = createAdminClient()
 
-  const { data: commissions } = await supabase
-    .from('affiliate_commissions')
-    .select('*')
-    .eq('affiliate_id', affiliateId)
-    .order('created_at', { ascending: false }) as { data: { id: string; promo_code: string | null; service_name: string | null; order_id: string | null; commission_amount: number; order_amount: number; discount_amount: number; affiliate_commission_rate: number; status: string; created_at: string }[] | null }
+  let commissions: { id: string; promo_code: string | null; service_name: string | null; order_id: string | null; commission_amount: number; order_amount: number; discount_amount: number; affiliate_commission_rate: number; status: string; created_at: string }[] = []
+
+  try {
+    const { data } = await supabase
+      .from('affiliate_commissions')
+      .select('*')
+      .eq('affiliate_id', affiliateId)
+      .order('created_at', { ascending: false }) as { data: { id: string; promo_code: string | null; service_name: string | null; order_id: string | null; commission_amount: number; order_amount: number; discount_amount: number; affiliate_commission_rate: number; status: string; created_at: string }[] | null }
+    commissions = data ?? []
+  } catch {}
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">

@@ -23,48 +23,52 @@ export default async function AffiliateDashboardPage() {
 
   const supabase = createAdminClient()
 
-  const { data: affiliate } = await supabase
-    .from('affiliates')
-    .select('name, referral_code, commission_percent')
-    .eq('id', affiliateId)
-    .single() as { data: { name: string; referral_code: string; commission_percent: number } | null }
+  let affiliate: { name: string; referral_code: string; commission_percent: number } | null = null
+  let commissions: { id: string; service_name: string | null; promo_code: string | null; commission_amount: number; status: string; created_at: string }[] = []
+  let totalAvailable = 0
+  let pendingCommission = 0
+  let totalPaid = 0
+  let totalCommissions = 0
+  let totalClicks = 0
 
-  const { data: commissions } = await supabase
-    .from('affiliate_commissions')
-    .select('*')
-    .eq('affiliate_id', affiliateId)
-    .order('created_at', { ascending: false })
-    .limit(5) as { data: { id: string; service_name: string | null; promo_code: string | null; commission_amount: number; status: string; created_at: string }[] | null }
+  try {
+    const result = await supabase
+      .from('affiliates')
+      .select('name, referral_code, commission_percent')
+      .eq('id', affiliateId)
+      .single()
+    affiliate = result.data
 
-  const { data: allCommissions } = await supabase
-    .from('affiliate_commissions')
-    .select('commission_amount, status')
-    .eq('affiliate_id', affiliateId) as { data: { commission_amount: number; status: string }[] | null }
+    const { data: commData } = await supabase
+      .from('affiliate_commissions')
+      .select('*')
+      .eq('affiliate_id', affiliateId)
+      .order('created_at', { ascending: false })
+      .limit(5) as { data: { id: string; service_name: string | null; promo_code: string | null; commission_amount: number; status: string; created_at: string }[] | null }
 
-  const { data: allPayouts } = await supabase
-    .from('affiliate_payouts')
-    .select('amount, status')
-    .eq('affiliate_id', affiliateId) as { data: { amount: number; status: string }[] | null }
+    commissions = commData ?? []
 
-  const { data: clicks } = await supabase
-    .from('affiliate_clicks')
-    .select('id', { count: 'exact', head: true })
-    .eq('affiliate_id', affiliateId)
+    const { data: allComm } = await supabase
+      .from('affiliate_commissions')
+      .select('commission_amount, status')
+      .eq('affiliate_id', affiliateId) as { data: { commission_amount: number; status: string }[] | null }
 
-  const totalAvailable = allCommissions
-    ?.filter((c) => c.status === 'available')
-    .reduce((sum, c) => sum + Number(c.commission_amount), 0) ?? 0
+    const { data: allPayouts } = await supabase
+      .from('affiliate_payouts')
+      .select('amount, status')
+      .eq('affiliate_id', affiliateId) as { data: { amount: number; status: string }[] | null }
 
-  const pendingCommission = allCommissions
-    ?.filter((c) => c.status === 'pending')
-    .reduce((sum, c) => sum + Number(c.commission_amount), 0) ?? 0
+    const { data: clicks } = await supabase
+      .from('affiliate_clicks')
+      .select('id', { count: 'exact', head: true })
+      .eq('affiliate_id', affiliateId)
 
-  const totalPaid = allPayouts
-    ?.filter((p) => p.status === 'paid')
-    .reduce((sum, p) => sum + Number(p.amount), 0) ?? 0
-
-  const totalCommissions = allCommissions?.length ?? 0
-  const totalClicks = clicks?.length ?? 0
+    totalAvailable = allComm?.filter((c) => c.status === 'available').reduce((sum, c) => sum + Number(c.commission_amount), 0) ?? 0
+    pendingCommission = allComm?.filter((c) => c.status === 'pending').reduce((sum, c) => sum + Number(c.commission_amount), 0) ?? 0
+    totalPaid = allPayouts?.filter((p) => p.status === 'paid').reduce((sum, p) => sum + Number(p.amount), 0) ?? 0
+    totalCommissions = allComm?.length ?? 0
+    totalClicks = clicks?.length ?? 0
+  } catch {}
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">

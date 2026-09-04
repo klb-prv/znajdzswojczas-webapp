@@ -19,11 +19,16 @@ export default async function AffiliateCodesPage() {
 
   const supabase = createAdminClient()
 
-  const { data: codes } = await supabase
-    .from('affiliate_promo_codes')
-    .select('*')
-    .eq('affiliate_id', affiliateId)
-    .order('created_at', { ascending: false }) as { data: { id: string; code: string; client_discount_rate: number; affiliate_commission_rate: number; status: string; usage_count: number; created_at: string }[] | null }
+  let codes: { id: string; code: string; client_discount_rate: number; affiliate_commission_rate: number; status: string; usage_count: number; created_at: string }[] = []
+
+  try {
+    const { data } = await supabase
+      .from('affiliate_promo_codes')
+      .select('*')
+      .eq('affiliate_id', affiliateId)
+      .order('created_at', { ascending: false }) as { data: { id: string; code: string; client_discount_rate: number; affiliate_commission_rate: number; status: string; usage_count: number; created_at: string }[] | null }
+    codes = data ?? []
+  } catch {}
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
