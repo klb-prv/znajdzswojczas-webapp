@@ -20,6 +20,26 @@ Zasady rezerwacji:
 - Terminy mogą być blokowane lub przełożone przez Realizatora (klient jest informowany e-mailem).
 - Status zgłoszenia można sprawdzić w serwisie po jego numerze; zgłoszenie można anulować do momentu rozpoczęcia usługi (patrz §9 regulaminu — brak zwrotów za usługę rozpoczętą).
 
+### Sprawdzanie statusu zgłoszenia po ID
+
+Gdy klient podaje identyfikator zgłoszenia:
+- **Format ID:** pełny UUID (np. `a1b2c3d4-e5f6-...`) albo krótki numer `#XXXXXXXX` (pierwsze 8 znaków UUID, wielkość liter bez znaczenia) — klient dostaje go w e-mailu potwierdzającym i na stronie potwierdzenia zgłoszenia.
+- **API (oba formaty):** `POST https://znajdzswojczas.pl/api/reservations/status` z ciałem JSON `{"id": "<UUID lub #XXXXXXXX>"}`.
+  Odpowiedź: `status`, `statusLabel` (nazwa po polsku), `statusEmoji`, `name`, `topic`, `description`, `date`, `notes`, `finalPrice`, `reservationNumber`. Gdy nie znaleziono: HTTP 404, `{"error": "Nie znaleziono zgłoszenia o podanym ID"}`.
+- **Strona (tylko pełny UUID):** `https://znajdzswojczas.pl/status/<UUID>`.
+- **Możliwe statusy:**
+  | status | label |
+  |---|---|
+  | `pending_confirmation` | Oczekuje na potwierdzenie (kod z e-maila) |
+  | `confirmed` | Przyjęto do realizacji |
+  | `rescheduled` | Termin przełożony |
+  | `in_progress` | W trakcie realizacji |
+  | `awaiting_payment` | Zrealizowano — oczekiwanie na płatność |
+  | `paid` | Opłacone |
+  | `cancelled` | Odwołano |
+- **Anulowanie zgłoszenia (tylko `pending_confirmation` / `confirmed` / `rescheduled`):** `POST https://znajdzswojczas.pl/api/reservations/cancel` z `{"id": "<UUID lub #XXXXXXXX>"}`; po rozpoczęciu realizacji anulowanie blokowane jest regulaminem (HTTP 409).
+- Endpointy mają limit liczby zapytań z jednego adresu (odpowiedź HTTP 429 przy przekroczeniu).
+
 ---
 
 ## 2. Usługi i cennik

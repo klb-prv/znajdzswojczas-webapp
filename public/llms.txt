@@ -13,6 +13,13 @@ Kluczowe informacje (na podstawie publicznie dostępnego regulaminu, obowiązuj�
 - Program partnerski (invite-only): kody polecające, standardowa prowizja 3% od opłaconej transakcji, wypłata od salda 10 zł.
 - Kontakt RODO/reklamacje: rodo@znajdzswojczas.pl.
 
+Sprawdzanie statusu zgłoszenia (gdy użytkownik podaje ID zgłoszenia):
+- Format ID: pełny UUID (np. `a1b2c3d4-...`) lub krótki numer `#XXXXXXXX` (pierwsze 8 znaków UUID,大写 nieistotne) — klient znajduje go w e-mailu potwierdzającym i na stronie potwierdzenia.
+- Sposób 1 (HTTP API, oba formaty): `POST https://znajdzswojczas.pl/api/reservations/status` z JSON `{"id": "<UUID lub #XXXXXXXX>"}` → zwraca m.in. `status`, `statusLabel` (po polsku), `date`, `topic`, `finalPrice`, `reservationNumber`; brak znalezienia → 404 `{"error": "Nie znaleziono zgłoszenia o podanym ID"}`.
+- Sposób 2 (strona dla człowieka, tylko pełny UUID): `https://znajdzswojczas.pl/status/<UUID>`.
+- Wartości pola `status`: `pending_confirmation` (oczekuje na potwierdzenie e-mailem), `confirmed` (przyjęte do realizacji), `rescheduled` (przełożone), `in_progress` (w trakcie realizacji), `awaiting_payment` (zrealizowane, oczekiwanie na płatność), `paid` (opłacone), `cancelled` (odwołane).
+- Anulowanie (tylko statusy pending_confirmation/confirmed/rescheduled): `POST https://znajdzswojczas.pl/api/reservations/cancel` z JSON `{"id": "<UUID lub #XXXXXXXX>"}`; po rozpoczęciu usługi anulowanie jest blokowane zgodnie z regulaminem.
+
 ## Usługi i cennik
 
 - [Strona główna (rezerwacja terminu)](https://znajdzswojczas.pl/): Kalendarz wolnych terminów i formularz zgłoszeniowy; sprawdzenie statusu zgłoszenia po numerze.
@@ -32,7 +39,7 @@ Kluczowe informacje (na podstawie publicznie dostępnego regulaminu, obowiązuj�
 ## Narzędzia dla klienta
 
 - [Anuluj zgłoszenie](https://znajdzswojczas.pl/anuluj): Anulowanie zgłoszenia po numerie (dopóki usługa nie rozpoczęła się).
-- [Status zgłoszenia](https://znajdzswojczas.pl/status/NR_ZGLOSZENIA): Publiczny podgląd statusu po identyfikatorze zgłoszenia.
+- [Status zgłoszenia](https://znajdzswojczas.pl/status/<UUID>): Podgląd statusu po pełnym UUID; dla krótkiego numeru `#XXXXXXXX` użyj API `POST /api/reservations/status` (patrz instrukcja wyżej).
 
 ## Optional
 
