@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
 import { pl } from 'date-fns/locale'
@@ -81,10 +82,10 @@ const REFERRAL_STATUS: Record<string, { label: string; color: string }> = {
 }
 
 const PAYOUT_STATUS: Record<string, { label: string; color: string }> = {
-  pending:    { label: 'Oczekuje',   color: 'bg-yellow-100 text-yellow-700' },
-  processing: { label: 'W trakcie',  color: 'bg-blue-100 text-blue-700' },
-  completed:  { label: 'Wypłacono',  color: 'bg-green-100 text-green-700' },
-  rejected:   { label: 'Odrzucono',  color: 'bg-red-100 text-red-700' },
+  pending:  { label: 'Oczekuje',     color: 'bg-yellow-100 text-yellow-700' },
+  approved: { label: 'Zaakceptowana', color: 'bg-green-100 text-green-700' },
+  paid:     { label: 'Wypłacona',    color: 'bg-blue-100 text-blue-700' },
+  rejected: { label: 'Odrzucona',    color: 'bg-red-100 text-red-700' },
 }
 
 const PROMO_STATUS: Record<string, { label: string; color: string }> = {
@@ -636,10 +637,17 @@ export default function AdminAffiliateDetail({ affiliate, stats, referrals, payo
 
       {/* Payouts */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-        <h2 className="font-semibold text-gray-700 mb-4">Wypłaty</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-semibold text-gray-700">Wypłaty</h2>
+          {payouts.length > 0 && (
+            <Link href={`/admin/payouts/${affiliate.id}`} className="text-xs px-3 py-1.5 rounded-lg border border-blue-200 text-blue-600 hover:bg-blue-50 transition font-medium">
+              Pokaż więcej →
+            </Link>
+          )}
+        </div>
         {payouts.length > 0 ? (
           <div className="space-y-2">
-            {payouts.map((p) => {
+            {payouts.slice(0, 3).map((p) => {
               const s = PAYOUT_STATUS[p.status] ?? PAYOUT_STATUS.pending
               const date = format(new Date(p.created_at), 'd.MM.yyyy', { locale: pl })
               return (

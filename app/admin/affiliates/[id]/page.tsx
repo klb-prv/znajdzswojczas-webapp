@@ -103,7 +103,7 @@ export default async function AdminAffiliateDetailPage({ params }: { params: Pro
   const pendingCommission = referrals.filter((r) => r.status === 'pending').reduce((sum, r) => sum + Number(r.commission_amount), 0)
   const paidCommission = referrals.filter((r) => r.status === 'paid').reduce((sum, r) => sum + Number(r.commission_amount), 0)
   const paidOrders = referrals.filter((r) => r.status === 'paid').length
-  const totalPaidOut = payouts.filter((p) => p.status === 'completed').reduce((sum, p) => sum + Number(p.amount), 0)
+  const totalPaidOut = payouts.filter((p) => p.status === 'paid').reduce((sum, p) => sum + Number(p.amount), 0)
 
   return (
     <main className="min-h-screen bg-gray-50 py-6 sm:py-12 px-4">
