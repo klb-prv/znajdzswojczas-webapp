@@ -19,7 +19,7 @@ export default function RegulamingPage() {
               <p className="mb-3">Pojęcia użyte w Regulaminie</p>
               <ul className="space-y-2 list-none pl-0">
                 <li><strong>Klient</strong> - wyłącznie osoba fizyczna (w tym osoba fizyczna prowadząca jednoosobową działalność gospodarczą) składająca Zgłoszenie za pośrednictwem Formularza dostępnego w Serwisie.</li>
-                <li><strong>Realizator Usługi</strong> - administrator serwisu znajdzswojczas.pl, świadczący Usługi na rzecz Klientów.</li>
+                <li><strong>Realizator Usługi</strong> - Kamil Baraniak (kbdev.run), administrator serwisu znajdzswojczas.pl, świadczący Usługi na rzecz Klientów.</li>
                 <li><strong>Usługa</strong> - świadczenie oferowane przez Realizatora Usługi, w szczególności konsultacje, tworzenie stron internetowych, programowanie i inne usługi techniczne lub doradcze.</li>
                 <li><strong>Serwis</strong> - strona internetowa dostępna pod adresem znajdzswojczas.pl wraz z całą infrastrukturą techniczną.</li>
                 <li><strong>Formularz</strong> - elektroniczny formularz dostępny w Serwisie, umożliwiający Klientowi złożenie Zgłoszenia.</li>

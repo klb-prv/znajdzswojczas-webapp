@@ -14,6 +14,8 @@ const schema = z.object({
     .regex(/^[A-Z0-9]+$/i, 'Kod może zawierać tylko litery i cyfry'),
 })
 
+const patchSchema = schema.extend({ id: z.string().min(1) })
+
 export async function POST(req: NextRequest) {
   try {
     const affiliate = await getAffiliateContext()
@@ -90,6 +92,64 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ ok: true, id: data.id, code: data.code })
+  } catch (e: unknown) {
+    if (e instanceof z.ZodError) {
+      return NextResponse.json({ error: e.errors[0].message }, { status: 422 })
+    }
+    const msg = e instanceof Error ? e.message : 'Błąd serwera'
+    return NextResponse.json({ error: msg }, { status: 500 })
+  }
+}
+
+// Zmiana nazwy własnego kodu - niezwłoczna, stary kod przestaje działać
+export async function PATCH(req: NextRequest) {
+  try {
+    const affiliate = await getAffiliateContext()
+    if (!affiliate) {
+      return NextResponse.json({ error: 'Nieautoryzowany dostęp' }, { status: 401 })
+    }
+
+    const body = patchSchema.parse(await req.json())
+    const newCode = body.code.toUpperCase()
+
+    const supabase = createAdminClient()
+
+    const { data: existing } = await supabase
+      .from('affiliate_promo_codes')
+      .select('id, code, created_by, affiliate_id')
+      .eq('id', body.id)
+      .maybeSingle()
+
+    if (!existing || existing.affiliate_id !== affiliate.id || existing.created_by !== 'affiliate') {
+      return NextResponse.json({ error: 'Nie znaleziono kodu lub nie należy on do Ciebie' }, { status: 404 })
+    }
+
+    if (existing.code === newCode) {
+      return NextResponse.json({ error: 'Nowy kod jest taki sam jak obecny' }, { status: 422 })
+    }
+
+    const [{ data: takenPromo }, { data: takenDiscount }] = await Promise.all([
+      supabase.from('affiliate_promo_codes').select('id').eq('code', newCode).maybeSingle(),
+      supabase.from('discount_codes').select('id').eq('code', newCode).maybeSingle(),
+    ])
+
+    if (takenPromo || takenDiscount) {
+      return NextResponse.json({ error: 'Ten kod jest już zajęty, wybierz inny' }, { status: 409 })
+    }
+
+    const { error } = await supabase
+      .from('affiliate_promo_codes')
+      .update({ code: newCode })
+      .eq('id', existing.id)
+
+    if (error) {
+      if (error.code === '23505') {
+        return NextResponse.json({ error: 'Ten kod jest już zajęty, wybierz inny' }, { status: 409 })
+      }
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    return NextResponse.json({ ok: true, code: newCode })
   } catch (e: unknown) {
     if (e instanceof z.ZodError) {
       return NextResponse.json({ error: e.errors[0].message }, { status: 422 })
