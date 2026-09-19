@@ -67,7 +67,7 @@ export default function AdminLoginPage() {
           <div className="text-3xl mb-2">🔐</div>
           <h1 className="text-xl font-bold text-gray-900">Panel admina</h1>
           <p className="text-xs text-gray-500 mt-1">
-            {step === 'email' && 'Zaloguj się emailem i kodem 2FA'}
+            {step === 'email' && 'Podaj dane do logowania'}
             {step === 'setup' && 'Pierwsze logowanie -skonfiguruj 2FA'}
             {step === 'verify' && 'Wprowadź kod z aplikacji uwierzytelniającej'}
           </p>
