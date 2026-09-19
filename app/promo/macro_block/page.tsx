@@ -1,28 +1,9 @@
-import { createAdminClient } from '@/lib/supabase/server'
+import { fetchPromoDiscount } from '@/lib/promo-code'
 
 export const dynamic = 'force-dynamic'
 
 interface PageProps {
   searchParams: Promise<{ promo_code?: string; size?: string; alternative_version?: string }>
-}
-
-async function fetchDiscount(code: string) {
-  const supabase = createAdminClient()
-  const { data: dc } = await supabase
-    .from('discount_codes')
-    .select('code, discount_type, discount_value, active, expires_at, max_uses, used_count')
-    .eq('code', code.toUpperCase().trim())
-    .single()
-
-  if (!dc || !dc.active) return null
-  if (dc.expires_at && new Date(dc.expires_at) < new Date()) return null
-  if (dc.max_uses !== null && dc.used_count >= dc.max_uses) return null
-
-  return dc as {
-    code: string
-    discount_type: 'percent' | 'fixed'
-    discount_value: number
-  }
 }
 
 export default async function MacroBlockPage({ searchParams }: PageProps) {
@@ -38,7 +19,7 @@ export default async function MacroBlockPage({ searchParams }: PageProps) {
   let codeText = 'XXXXXXXX'
 
   if (promo_code) {
-    const dc = await fetchDiscount(promo_code)
+    const dc = await fetchPromoDiscount(promo_code)
     if (dc) {
       discountLabel =
         dc.discount_type === 'percent'

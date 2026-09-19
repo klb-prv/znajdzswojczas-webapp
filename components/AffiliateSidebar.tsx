@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { href: '/affiliate', label: 'Panel', emoji: '📊' },
   { href: '/affiliate/link', label: 'Mój link', emoji: '🔗' },
   { href: '/affiliate/codes', label: 'Moje kody', emoji: '🎟️' },
+  { href: '/affiliate/promo', label: 'Materiały promocyjne', emoji: '🧩' },
   { href: '/affiliate/commissions', label: 'Prowizje', emoji: '💰' },
   { href: '/affiliate/payouts', label: 'Wypłaty', emoji: '💸' },
   { href: '/affiliate/stats', label: 'Statystyki', emoji: '📈' },
