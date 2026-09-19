@@ -17,6 +17,7 @@ const NAV_ITEMS = [
   { href: '/affiliate/commissions', label: 'Prowizje', emoji: '💰' },
   { href: '/affiliate/payouts', label: 'Wypłaty', emoji: '💸' },
   { href: '/affiliate/stats', label: 'Statystyki', emoji: '📈' },
+  { href: '/affiliate/logins', label: 'Ostatnie logowania', emoji: '🔑' },
 ]
 
 export default function AffiliateSidebar({ affiliateName, affiliateLogin }: Props) {

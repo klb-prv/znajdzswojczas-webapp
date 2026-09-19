@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
 import { pl } from 'date-fns/locale'
+import { summarizeUserAgent } from '@/lib/user-agent'
 
 interface Affiliate {
   id: string
@@ -73,6 +74,7 @@ interface Props {
   promoCodes: PromoCode[]
   discountCodeAssignments: DiscountCodeAssignment[]
   availableDiscountCodes: { id: string; code: string; discount_type: string; discount_value: number; active: boolean }[]
+  loginEvents?: { id: string; ip_address: string | null; user_agent: string | null; success: boolean; created_at: string }[]
 }
 
 const REFERRAL_STATUS: Record<string, { label: string; color: string }> = {
@@ -98,7 +100,7 @@ const PROMO_STATUS: Record<string, { label: string; color: string }> = {
 const RATE_OPTIONS = [3, 5, 10]
 const PARTNER_RATE_OPTIONS = [3, 5, 8, 10]
 
-export default function AdminAffiliateDetail({ affiliate, stats, referrals, payouts, promoCodes, discountCodeAssignments, availableDiscountCodes }: Props) {
+export default function AdminAffiliateDetail({ affiliate, stats, referrals, payouts, promoCodes, discountCodeAssignments, availableDiscountCodes, loginEvents = [] }: Props) {
   const router = useRouter()
   const [copied, setCopied] = useState(false)
 
@@ -665,6 +667,36 @@ export default function AdminAffiliateDetail({ affiliate, stats, referrals, payo
           </div>
         ) : (
           <p className="text-sm text-gray-400 text-center py-4">Brak wypłat</p>
+        )}
+      </div>
+
+      {/* Last logins */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <h2 className="font-semibold text-gray-700 mb-4">🔑 Ostatnie logowania</h2>
+        {loginEvents.length > 0 ? (
+          <div className="space-y-2">
+            {loginEvents.map((e) => {
+              const date = format(new Date(e.created_at), 'd.MM.yyyy, HH:mm', { locale: pl })
+              return (
+                <div key={e.id} className="flex items-center justify-between gap-3 bg-gray-50 rounded-xl px-4 py-2.5 text-sm">
+                  <div className="min-w-0">
+                    <p className="text-gray-800 truncate">{summarizeUserAgent(e.user_agent)}</p>
+                    <p className="text-[11px] text-gray-400 font-mono">{e.ip_address ?? '—'}</p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-xs text-gray-500">{date}</p>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
+                      e.success ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'
+                    }`}>
+                      {e.success ? 'Zalogowano' : 'Nieudane'}
+                    </span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        ) : (
+          <p className="text-sm text-gray-400 text-center py-4">Brak zarejestrowanych logowań</p>
         )}
       </div>
 

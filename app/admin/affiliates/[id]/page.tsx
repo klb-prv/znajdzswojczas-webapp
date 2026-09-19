@@ -13,6 +13,7 @@ export default async function AdminAffiliateDetailPage({ params }: { params: Pro
   let promoCodes: { id: string; code: string; client_discount_rate: number; affiliate_commission_rate: number; status: string; usage_count: number; created_by: string }[] = []
   let discountCodeAssignments: { id: string; discount_code_id: string; code: string; discount_type: string; discount_value: number; active: boolean; used_count: number; affiliate_commission_rate: number }[] = []
   let availableDiscountCodes: { id: string; code: string; discount_type: string; discount_value: number; active: boolean }[] = []
+  let loginEvents: { id: string; ip_address: string | null; user_agent: string | null; success: boolean; created_at: string }[] = []
 
   try {
     const supabase = createAdminClient()
@@ -48,6 +49,15 @@ export default async function AdminAffiliateDetailPage({ params }: { params: Pro
         .order('created_at', { ascending: false }) as { data: { id: string; amount: number; status: string; created_at: string }[] | null }
 
       payouts = payData ?? []
+
+      const { data: loginData } = await supabase
+        .from('affiliate_login_events')
+        .select('id, ip_address, user_agent, success, created_at')
+        .eq('affiliate_id', id)
+        .order('created_at', { ascending: false })
+        .limit(10) as { data: { id: string; ip_address: string | null; user_agent: string | null; success: boolean; created_at: string }[] | null }
+
+      loginEvents = loginData ?? []
 
       const { data: codeData } = await supabase
         .from('affiliate_promo_codes')
@@ -132,6 +142,7 @@ export default async function AdminAffiliateDetailPage({ params }: { params: Pro
           promoCodes={promoCodes}
           discountCodeAssignments={discountCodeAssignments}
           availableDiscountCodes={availableDiscountCodes}
+          loginEvents={loginEvents}
         />
       </div>
     </main>

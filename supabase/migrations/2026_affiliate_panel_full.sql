@@ -100,6 +100,15 @@ create table if not exists affiliate_discount_code_assignments (
   unique(discount_code_id)
 );
 
+create table if not exists affiliate_login_events (
+  id uuid primary key default gen_random_uuid(),
+  affiliate_id uuid not null references affiliates(id) on delete cascade,
+  ip_address text,
+  user_agent text,
+  success boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
 -- ─── Kolumny doklejane do już istniejących tabel ───
 
 -- 0. Email partnera (wymagany przy tworzeniu - wysyłka zaproszenia)
@@ -159,3 +168,8 @@ create index if not exists affiliate_clicks_affiliate_id_idx
 
 create index if not exists affiliate_discount_code_assignments_affiliate_id_idx
   on affiliate_discount_code_assignments(affiliate_id);
+
+create index if not exists affiliate_login_events_affiliate_id_created_at_idx
+  on affiliate_login_events(affiliate_id, created_at desc);
+
+alter table affiliate_login_events enable row level security;
