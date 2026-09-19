@@ -8,10 +8,13 @@ export default async function AffiliateCodesPage() {
   const affiliate = await requireAffiliateContext()
   const supabase = createAdminClient()
 
+  const promoCols = 'id, code, client_discount_rate, affiliate_commission_rate, status, usage_count, created_by'
+  const promoColsFallback = 'id, code, client_discount_rate, affiliate_commission_rate, status, usage_count'
+
   const [promoRes, assignRes] = await Promise.all([
     supabase
       .from('affiliate_promo_codes')
-      .select('id, code, client_discount_rate, affiliate_commission_rate, status, usage_count, created_by')
+      .select(promoCols)
       .eq('affiliate_id', affiliate.id)
       .order('created_at', { ascending: false }),
     supabase
@@ -21,9 +24,27 @@ export default async function AffiliateCodesPage() {
       .order('created_at', { ascending: false }),
   ])
 
-  const promoRows = (promoRes.data ?? []) as (PromoCodeItem & { created_by: string })[]
-  const selfCode = promoRows.find((p) => p.created_by === 'affiliate') ?? null
-  const adminPromoCodes = promoRows.filter((p) => p.created_by !== 'affiliate')
+  // Fallback: kolumna created_by może jeszcze nie istnieć (migracja nie uruchomiona)
+  let promoData = promoRes.data
+  let promoMissingColumn = false
+  if (promoRes.error) {
+    promoMissingColumn = true
+    const retry = await supabase
+      .from('affiliate_promo_codes')
+      .select(promoColsFallback)
+      .eq('affiliate_id', affiliate.id)
+      .order('created_at', { ascending: false })
+    promoData = retry.data
+  }
+
+  const promoRows = (promoData ?? []) as (PromoCodeItem & { created_by?: string })[]
+  // Bez kolumny created_by nie da się wyróżnić kodu własnego - wszystkie są read-only
+  const selfCode = promoMissingColumn
+    ? null
+    : promoRows.find((p) => p.created_by === 'affiliate') ?? null
+  const adminPromoCodes = promoMissingColumn
+    ? promoRows
+    : promoRows.filter((p) => p.created_by !== 'affiliate')
 
   const discountAssignments: DiscountAssignmentItem[] = ((assignRes.data ?? []) as Record<string, unknown>[]).map((row) => {
     const dc = row.discount_codes as Record<string, unknown> | null

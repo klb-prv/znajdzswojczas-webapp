@@ -36,11 +36,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Konto afiliacyjne jest nieaktywne' }, { status: 403 })
     }
 
-    const { count } = await supabase
+    const { count, error: countError } = await supabase
       .from('affiliate_promo_codes')
       .select('id', { count: 'exact', head: true })
       .eq('affiliate_id', affiliate.id)
       .eq('created_by', 'affiliate')
+
+    // Kolumna created_by istnieje dopiero po migracji affiliate_promo_code_created_by.sql.
+    // Bez niej limit "1 kod" nie da się wyegzekwować - blokujemy tworzenie,
+    // aby nie ominąć limitu, zamiast pozwalać na nieograniczone kody.
+    if (countError) {
+      return NextResponse.json(
+        { error: 'Tworzenie własnych kodów wymaga aktualizacji bazy. Skontaktuj się z administratorem.' },
+        { status: 503 }
+      )
+    }
 
     if ((count ?? 0) > 0) {
       return NextResponse.json(
