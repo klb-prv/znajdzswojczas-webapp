@@ -27,6 +27,7 @@ create table affiliate_promo_codes (
   affiliate_commission_rate integer not null default 3 check (affiliate_commission_rate > 0 and affiliate_commission_rate <= 100),
   status promo_code_status not null default 'active',
   usage_count integer not null default 0,
+  created_by text not null default 'admin' check (created_by in ('admin', 'affiliate')),
   created_at timestamptz not null default now()
 );
 
