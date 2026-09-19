@@ -282,7 +282,8 @@ export default function BookingForm({ date, onSuccess }: Props) {
           {appliedDiscount ? (
             <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-3 py-2">
               <span className="text-green-600 text-sm font-medium flex-1">
-                ✓ {appliedDiscount.code} –{appliedDiscount.discount_type === 'percent'
+                ✓ {appliedDiscount.code} ·{' '}
+                {appliedDiscount.discount_type === 'percent'
                   ? `−${appliedDiscount.discount_value}% (oszczędzasz ${discountAmount} zł)`
                   : `−${discountAmount} zł`
                 }
