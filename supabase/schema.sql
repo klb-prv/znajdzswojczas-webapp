@@ -79,22 +79,9 @@ alter table verification_codes enable row level security;
 create policy "Public read blocked_dates"
   on blocked_dates for select using (true);
 
--- Publiczne tworzenie i odczyt rezerwacji
-create policy "Public insert reservations"
-  on reservations for insert with check (true);
-
-create policy "Public read reservations"
-  on reservations for select using (true);
-
--- Kody weryfikacyjne
-create policy "Public insert verification_codes"
-  on verification_codes for insert with check (true);
-
-create policy "Public read verification_codes"
-  on verification_codes for select using (true);
-
-create policy "Public update verification_codes"
-  on verification_codes for update using (true);
+-- reservations i verification_codes: BEZ polityk publicznych.
+-- Cały dostęp idzie przez service_role (API routes, omija RLS).
+-- Publiczne polityk=umożliwiały wyciek PII i kodów potwierdzenia anon keyem.
 
 -- Admin ma pełny dostęp (przez service_role key w API)
 
@@ -115,9 +102,9 @@ create table discount_codes (
 
 alter table discount_codes enable row level security;
 
--- Osobne polityki dla każdej operacji (service_role przez bypass, ale dla bezpieczeństwa explicite)
+-- Pełny dostęp wyłącznie dla roli service_role (bez anon!)
 create policy "Service role full access on discount_codes"
-  on discount_codes for all using (true) with check (true);
+  on discount_codes for all to service_role using (true) with check (true);
 
 -- ============================================================
 -- USTAWIENIA SERWISU (singleton -zawsze wiersz z id=1)
@@ -138,7 +125,7 @@ alter table site_settings enable row level security;
 create policy "Public read site_settings"
   on site_settings for select using (true);
 create policy "Service role update site_settings"
-  on site_settings for update using (true);
+  on site_settings for update to service_role using (true) with check (true);
 
 -- ============================================================
 -- ADMIN USERS -logowanie emailem + TOTP 2FA

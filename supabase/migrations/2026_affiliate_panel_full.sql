@@ -131,7 +131,7 @@ do $$ begin
     where tablename = 'discount_codes' and policyname = 'Service role full access on discount_codes'
   ) then
     create policy "Service role full access on discount_codes"
-      on discount_codes for all using (true) with check (true);
+      on discount_codes for all to service_role using (true) with check (true);
   end if;
 end $$;
 

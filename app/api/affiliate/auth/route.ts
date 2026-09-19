@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
 import { createAffiliateSession, AFFILIATE_SESSION_COOKIE } from '@/lib/affiliate-session'
 import { hashPassword } from '@/lib/password'
+import { rateLimit } from '@/lib/rate-limit'
 import { z } from 'zod'
 
 const schema = z.object({
@@ -11,6 +12,9 @@ const schema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    const limited = rateLimit(req, 'affiliate-auth', 10)
+    if (limited) return limited
+
     const body = schema.parse(await req.json())
     const supabase = createAdminClient()
 

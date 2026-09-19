@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { rateLimit } from '@/lib/rate-limit'
 import { createAdminClient } from '@/lib/supabase/server'
 
 const STATUS_LABELS: Record<string, string> = {
@@ -24,6 +25,9 @@ const SHORT_REGEX = /^#?[0-9a-f]{8}$/i
 
 export async function POST(req: NextRequest) {
   try {
+    const limited = rateLimit(req, 'reservation-status', 30)
+    if (limited) return limited
+
     const body = await req.json()
     const raw: string = (body?.id ?? '').toString().trim()
 

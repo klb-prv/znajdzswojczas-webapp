@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { generateSecret, verify, generateURI } from 'otplib'
 import { createAdminClient } from '@/lib/supabase/server'
 import { createSessionToken, SESSION_COOKIE } from '@/lib/session'
+import { rateLimit } from '@/lib/rate-limit'
 import { z } from 'zod'
 
 const ADMIN_EMAIL = () => (process.env.ADMIN_EMAIL ?? '').toLowerCase().trim()
@@ -13,6 +14,9 @@ const schema = z.discriminatedUnion('step', [
 
 export async function POST(req: NextRequest) {
   try {
+    const limited = rateLimit(req, 'admin-auth', 10)
+    if (limited) return limited
+
     const body = schema.parse(await req.json())
     const supabase = createAdminClient()
 

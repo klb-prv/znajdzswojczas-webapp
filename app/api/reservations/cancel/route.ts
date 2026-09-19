@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { rateLimit } from '@/lib/rate-limit'
 import { createAdminClient } from '@/lib/supabase/server'
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -8,6 +9,9 @@ const CANCELLABLE_STATUSES = ['pending_confirmation', 'confirmed', 'rescheduled'
 
 export async function POST(req: NextRequest) {
   try {
+    const limited = rateLimit(req, 'reservation-cancel', 10)
+    if (limited) return limited
+
     const body = await req.json()
     const raw: string = (body?.id ?? '').toString().trim()
 

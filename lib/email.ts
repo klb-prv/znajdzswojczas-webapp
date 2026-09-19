@@ -2,6 +2,17 @@ import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
+// Eskapowanie danych użytkownika do HTML - ochrona przed wstrzyknięciem
+// własnych tagów/linków (phishing) w treść wiadomości.
+function esc(value: string): string {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
 function emailFooter(showCancel = true) {
   const base = process.env.NEXT_PUBLIC_APP_URL ?? 'https://znajdzswojczas.pl'
   const cancelLink = showCancel
@@ -26,10 +37,11 @@ export async function sendVerificationEmail(
   date: string,
   discordNick?: string
 ) {
+  name = esc(name); date = esc(date);
   const discordBlock = discordNick
     ? `<div style="background:#5865F2;border-radius:8px;padding:16px;margin:20px 0;color:#fff">
         <p style="margin:0;font-size:14px;font-weight:600">🎮 Kontakt przez Discord</p>
-        <p style="margin:8px 0 0 0;font-size:13px">Będziemy się z tobą kontaktować przez Discord na <strong>${discordNick}</strong></p>
+        <p style="margin:8px 0 0 0;font-size:13px">Będziemy się z tobą kontaktować przez Discord na <strong>${esc(discordNick)}</strong></p>
        </div>`
     : ''
   await resend.emails.send({
@@ -61,6 +73,7 @@ export async function sendConfirmationEmail(
   topic: string,
   reservationId: string
 ) {
+  name = esc(name); date = esc(date); topic = esc(topic);
   const shortId = reservationId.slice(0, 8).toUpperCase()
 
   // Wyciągnij nick Discorda z tematu jeśli występuje
@@ -71,7 +84,7 @@ export async function sendConfirmationEmail(
   const discordBlock = discordNick
     ? `<div style="background:#5865F2;border-radius:8px;padding:16px;margin:20px 0;color:#fff">
         <p style="margin:0;font-size:14px;font-weight:600">🎮 Kontakt przez Discord</p>
-        <p style="margin:8px 0 0 0;font-size:13px">Będziemy się z tobą kontaktować przez Discord na <strong>${discordNick}</strong></p>
+        <p style="margin:8px 0 0 0;font-size:13px">Będziemy się z tobą kontaktować przez Discord na <strong>${esc(discordNick)}</strong></p>
        </div>`
     : ''
 
@@ -102,6 +115,7 @@ export async function sendCancellationEmail(
   date: string,
   reason: string
 ) {
+  name = esc(name); date = esc(date); reason = esc(reason);
   await resend.emails.send({
     from: process.env.EMAIL_FROM ?? 'onboarding@resend.dev',
     to,
@@ -125,6 +139,7 @@ export async function sendRescheduleEmail(
   newDate: string,
   reason: string
 ) {
+  name = esc(name); oldDate = esc(oldDate); newDate = esc(newDate); reason = esc(reason);
   await resend.emails.send({
     from: process.env.EMAIL_FROM ?? 'onboarding@resend.dev',
     to,
@@ -151,6 +166,7 @@ export async function sendCategoryChangeEmail(
   newCategory: string,
   reason: string
 ) {
+  name = esc(name); title = esc(title); oldCategory = esc(oldCategory); newCategory = esc(newCategory); reason = esc(reason);
   const shortId = reservationId.slice(0, 8).toUpperCase()
   await resend.emails.send({
     from: process.env.EMAIL_FROM ?? 'onboarding@resend.dev',
@@ -182,6 +198,7 @@ export async function sendCompletionEmail(
   finalPrice: number,
   paymentDays: number = 14
 ) {
+  name = esc(name); date = esc(date); topic = esc(topic);
   const shortId = reservationId.slice(0, 8).toUpperCase()
   const cleanTopic = topic.replace(/ ?\[Kontakt: Discord - .+?\]$/, '').trim()
   const priceFormatted = finalPrice.toLocaleString('pl-PL', { minimumFractionDigits: 2 })
@@ -224,6 +241,7 @@ export async function sendPaymentConfirmedEmail(
   reservationId: string,
   finalPrice: number
 ) {
+  name = esc(name); date = esc(date); topic = esc(topic);
   const shortId = reservationId.slice(0, 8).toUpperCase()
   const cleanTopic = topic.replace(/ ?\[Kontakt: Discord - .+?\]$/, '').trim()
   const priceFormatted = finalPrice.toLocaleString('pl-PL', { minimumFractionDigits: 2 })
@@ -260,6 +278,7 @@ export async function sendInProgressEmail(
   reservationId: string,
   estimatedDays: number
 ) {
+  name = esc(name); date = esc(date); topic = esc(topic);
   const shortId = reservationId.slice(0, 8).toUpperCase()
   const cleanTopic = topic.replace(/ ?\[Kontakt: Discord - .+?\]$/, '').trim()
   const daysLabel = estimatedDays === 1 ? 'dzień' : 'dni'
@@ -294,6 +313,7 @@ export async function sendAffiliateWelcomeEmail(
   login: string,
   password: string
 ) {
+  name = esc(name); login = esc(login); password = esc(password);
   const base = process.env.NEXT_PUBLIC_APP_URL ?? 'https://znajdzswojczas.pl'
   const panelLink = `${base}/affiliate`
 

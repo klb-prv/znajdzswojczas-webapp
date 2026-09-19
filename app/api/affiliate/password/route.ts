@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { rateLimit } from '@/lib/rate-limit'
 import { z } from 'zod'
 import { createAdminClient } from '@/lib/supabase/server'
 import { getAffiliateContext } from '@/lib/affiliate-auth'
@@ -11,6 +12,9 @@ const schema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    const limited = rateLimit(req, 'affiliate-password', 5)
+    if (limited) return limited
+
     const affiliate = await getAffiliateContext()
     if (!affiliate) {
       return NextResponse.json({ error: 'Nieautoryzowany dostęp' }, { status: 401 })

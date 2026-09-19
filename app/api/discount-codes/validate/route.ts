@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { rateLimit } from '@/lib/rate-limit'
 import { z } from 'zod'
 import { createAdminClient } from '@/lib/supabase/server'
 
@@ -6,6 +7,9 @@ const schema = z.object({ code: z.string().min(1) })
 
 export async function POST(req: NextRequest) {
   try {
+    const limited = rateLimit(req, 'discount-validate', 30)
+    if (limited) return limited
+
     const { code } = schema.parse(await req.json())
     const supabase = createAdminClient()
     const normalized = code.toUpperCase().trim()

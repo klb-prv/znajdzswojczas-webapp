@@ -15,7 +15,7 @@ function base64urlToUint8(str: string): Uint8Array {
 }
 
 async function getHmacKey(usage: KeyUsage[]): Promise<CryptoKey> {
-  const secret = process.env.ADMIN_SESSION_SECRET ?? 'dev-insecure-secret-change-me'
+  const secret = resolveSecret(process.env.ADMIN_SESSION_SECRET, 'dev-insecure-secret-change-me', 'ADMIN_SESSION_SECRET')
   return crypto.subtle.importKey(
     'raw',
     new TextEncoder().encode(secret),
@@ -23,6 +23,15 @@ async function getHmacKey(usage: KeyUsage[]): Promise<CryptoKey> {
     false,
     usage
   )
+}
+
+function resolveSecret(env: string | undefined, devFallback: string, name: string): string {
+  if (env && env.length >= 16) return env
+  if (process.env.NODE_ENV === 'production') {
+    // Brak sekretu w produkcji = możliwość podrobienia ciasteczek sesji admina
+    throw new Error(`Brak zmiennej środowiskowej ${name} - ustaw ją w środowisku produkcyjnym`)
+  }
+  return devFallback
 }
 
 export async function createSessionToken(): Promise<string> {

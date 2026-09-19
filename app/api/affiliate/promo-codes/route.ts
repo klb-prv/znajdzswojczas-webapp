@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { rateLimit } from '@/lib/rate-limit'
 import { z } from 'zod'
 import { createAdminClient } from '@/lib/supabase/server'
 import { getAffiliateContext } from '@/lib/affiliate-auth'
@@ -18,6 +19,9 @@ const patchSchema = schema.extend({ id: z.string().min(1) })
 
 export async function POST(req: NextRequest) {
   try {
+    const limited = rateLimit(req, 'affiliate-promo-create', 10)
+    if (limited) return limited
+
     const affiliate = await getAffiliateContext()
     if (!affiliate) {
       return NextResponse.json({ error: 'Nieautoryzowany dostęp' }, { status: 401 })
@@ -104,6 +108,9 @@ export async function POST(req: NextRequest) {
 // Zmiana nazwy własnego kodu - niezwłoczna, stary kod przestaje działać
 export async function PATCH(req: NextRequest) {
   try {
+    const limited = rateLimit(req, 'affiliate-promo-edit', 10)
+    if (limited) return limited
+
     const affiliate = await getAffiliateContext()
     if (!affiliate) {
       return NextResponse.json({ error: 'Nieautoryzowany dostęp' }, { status: 401 })
