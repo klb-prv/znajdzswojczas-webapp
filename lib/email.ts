@@ -337,6 +337,7 @@ export async function sendAffiliateWelcomeEmail(
           Link do panelu:
           <a href="${panelLink}" style="color:#2563eb;font-weight:600">${panelLink}</a>
         </p>
+        <i style="font-style: italic;">Pss: Zachęcamy do szybkiej zmiany hasła w panelu ;)</i>
         <p style="margin-top:32px">Pozdrawiamy<br/><strong>Administracja znajdzswojczas.pl</strong></p>
         <hr style="border:none;border-top:1px solid #eee;margin:24px 0"/>
         <p style="text-align:center;margin:0">
