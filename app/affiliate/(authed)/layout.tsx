@@ -36,9 +36,9 @@ export default async function AffiliateAuthedLayout({ children }: { children: Re
   }
 
   return (
-    <div className="min-h-screen bg-[#09090B] flex">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#09090B] flex">
       <AffiliateSidebar affiliateName={affiliate.name} affiliateLogin={affiliate.login} />
-      <main className="flex-1 p-6 lg:p-8 lg:ml-64">
+      <main className="flex-1 p-6 pt-16 lg:p-8 lg:pt-8 lg:ml-64">
         {children}
       </main>
     </div>

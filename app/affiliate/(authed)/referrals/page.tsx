@@ -6,10 +6,10 @@ import { format } from 'date-fns'
 import { pl } from 'date-fns/locale'
 
 const STATUS_MAP: Record<string, { label: string; color: string }> = {
-  pending:   { label: 'Oczekuje',    color: 'bg-amber-900/30 text-amber-400 border-amber-800/50' },
-  approved:  { label: 'Zatwierdzona', color: 'bg-emerald-900/30 text-emerald-400 border-emerald-800/50' },
-  rejected:  { label: 'Odrzucona',    color: 'bg-red-900/30 text-red-400 border-red-800/50' },
-  paid:      { label: 'Wypłacono',    color: 'bg-[#7C5CFC]/15 text-[#9277FF] border-[#7C5CFC]/30' },
+  pending:   { label: 'Oczekuje',    color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-600 dark:text-amber-400' },
+  approved:  { label: 'Zatwierdzona', color: 'bg-green-100 text-green-700 dark:bg-emerald-900/30 dark:text-green-600 dark:text-emerald-400' },
+  rejected:  { label: 'Odrzucona',    color: 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' },
+  paid:      { label: 'Wypłacono',    color: 'bg-violet-100 text-violet-700 dark:bg-[#7C5CFC]/15 dark:text-[#9277FF]' },
 }
 
 export default async function AffiliateReferralsPage() {
@@ -30,15 +30,15 @@ export default async function AffiliateReferralsPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold text-[#F5F5F7]">👥 Polecenia</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-[#F5F5F7]">👥 Polecenia</h1>
 
       {/* Desktop table */}
-      <div className="hidden md:block bg-[#111114] border border-[#25252D] rounded-2xl overflow-hidden">
+      <div className="hidden md:block bg-white dark:bg-[#111114] border border-gray-200 dark:border-[#25252D] rounded-2xl overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-[#15151A] border-b border-[#25252D]">
+          <thead className="bg-gray-100 dark:bg-[#15151A] border-b border-gray-200 dark:border-[#25252D]">
             <tr>
               {['Data', 'Klient', 'Zamówienie', 'Wartość', 'Prowizja', 'Status'].map((h) => (
-                <th key={h} className="text-left px-4 py-3 text-[#555] font-medium text-xs">
+                <th key={h} className="text-left px-4 py-3 text-gray-400 dark:text-[#555] font-medium text-xs">
                   {h}
                 </th>
               ))}
@@ -49,12 +49,12 @@ export default async function AffiliateReferralsPage() {
               const s = STATUS_MAP[r.status] ?? STATUS_MAP.pending
               const date = format(new Date(r.created_at), 'd.MM.yyyy', { locale: pl })
               return (
-                <tr key={r.id} className="border-b border-[#1a1a20] hover:bg-[#15151A] transition">
-                  <td className="px-4 py-3 text-[#9A9AA3]">{date}</td>
-                  <td className="px-4 py-3 text-[#F5F5F7] font-medium">{r.client_label}</td>
-                  <td className="px-4 py-3 text-[#9A9AA3]">{r.service_name}</td>
-                  <td className="px-4 py-3 text-[#F5F5F7]">{Number(r.order_value).toLocaleString('pl-PL', { minimumFractionDigits: 2 })} zł</td>
-                  <td className="px-4 py-3 text-[#F5F5F7] font-semibold">{Number(r.commission_amount).toLocaleString('pl-PL', { minimumFractionDigits: 2 })} zł</td>
+                <tr key={r.id} className="border-b border-gray-100 dark:border-[#1a1a20] hover:bg-gray-100 dark:bg-[#15151A] transition">
+                  <td className="px-4 py-3 text-gray-600 dark:text-[#9A9AA3]">{date}</td>
+                  <td className="px-4 py-3 text-gray-900 dark:text-[#F5F5F7] font-medium">{r.client_label}</td>
+                  <td className="px-4 py-3 text-gray-600 dark:text-[#9A9AA3]">{r.service_name}</td>
+                  <td className="px-4 py-3 text-gray-900 dark:text-[#F5F5F7]">{Number(r.order_value).toLocaleString('pl-PL', { minimumFractionDigits: 2 })} zł</td>
+                  <td className="px-4 py-3 text-gray-900 dark:text-[#F5F5F7] font-semibold">{Number(r.commission_amount).toLocaleString('pl-PL', { minimumFractionDigits: 2 })} zł</td>
                   <td className="px-4 py-3">
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${s.color}`}>
                       {s.label}
@@ -65,7 +65,7 @@ export default async function AffiliateReferralsPage() {
             })}
             {!referrals?.length && (
               <tr>
-                <td colSpan={6} className="px-4 py-12 text-center text-[#555]">
+                <td colSpan={6} className="px-4 py-12 text-center text-gray-400 dark:text-[#555]">
                   Brak poleceń
                 </td>
               </tr>
@@ -80,28 +80,28 @@ export default async function AffiliateReferralsPage() {
           const s = STATUS_MAP[r.status] ?? STATUS_MAP.pending
           const date = format(new Date(r.created_at), 'd.MM.yyyy', { locale: pl })
           return (
-            <div key={r.id} className="bg-[#111114] border border-[#25252D] rounded-xl p-4">
+            <div key={r.id} className="bg-white dark:bg-[#111114] border border-gray-200 dark:border-[#25252D] rounded-xl p-4">
               <div className="flex items-start justify-between gap-2 mb-2">
-                <span className="text-xs text-[#555]">{date}</span>
+                <span className="text-xs text-gray-400 dark:text-[#555]">{date}</span>
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${s.color}`}>
                   {s.label}
                 </span>
               </div>
-              <p className="text-sm font-medium text-[#F5F5F7]">{r.service_name}</p>
-              <p className="text-xs text-[#555] mt-0.5">{r.client_label}</p>
-              <div className="flex justify-between mt-3 pt-2 border-t border-[#25252D]">
-                <span className="text-xs text-[#555]">Zamówienie</span>
-                <span className="text-xs text-[#9A9AA3]">{Number(r.order_value).toLocaleString('pl-PL', { minimumFractionDigits: 2 })} zł</span>
+              <p className="text-sm font-medium text-gray-900 dark:text-[#F5F5F7]">{r.service_name}</p>
+              <p className="text-xs text-gray-400 dark:text-[#555] mt-0.5">{r.client_label}</p>
+              <div className="flex justify-between mt-3 pt-2 border-t border-gray-200 dark:border-[#25252D]">
+                <span className="text-xs text-gray-400 dark:text-[#555]">Zamówienie</span>
+                <span className="text-xs text-gray-600 dark:text-[#9A9AA3]">{Number(r.order_value).toLocaleString('pl-PL', { minimumFractionDigits: 2 })} zł</span>
               </div>
               <div className="flex justify-between mt-1">
-                <span className="text-xs text-[#555]">Prowizja</span>
-                <span className="text-xs font-bold text-[#F5F5F7]">{Number(r.commission_amount).toLocaleString('pl-PL', { minimumFractionDigits: 2 })} zł</span>
+                <span className="text-xs text-gray-400 dark:text-[#555]">Prowizja</span>
+                <span className="text-xs font-bold text-gray-900 dark:text-[#F5F5F7]">{Number(r.commission_amount).toLocaleString('pl-PL', { minimumFractionDigits: 2 })} zł</span>
               </div>
             </div>
           )
         })}
         {!referrals?.length && (
-          <div className="bg-[#111114] border border-[#25252D] rounded-xl p-8 text-center text-[#555] text-sm">
+          <div className="bg-white dark:bg-[#111114] border border-gray-200 dark:border-[#25252D] rounded-xl p-8 text-center text-gray-400 dark:text-[#555] text-sm">
             Brak poleceń
           </div>
         )}

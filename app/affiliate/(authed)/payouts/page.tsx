@@ -7,10 +7,10 @@ import { pl } from 'date-fns/locale'
 import AffiliatePayoutButton from '@/components/AffiliatePayoutButton'
 
 const PAYOUT_STATUS: Record<string, { label: string; color: string }> = {
-  pending:  { label: 'Oczekuje',   color: 'bg-amber-900/30 text-amber-400 border-amber-800/50' },
-  approved: { label: 'Zaakceptowana', color: 'bg-emerald-900/30 text-emerald-400 border-emerald-800/50' },
-  paid:     { label: 'Wypłacona',  color: 'bg-[#7C5CFC]/15 text-[#9277FF] border-[#7C5CFC]/30' },
-  rejected: { label: 'Odrzucona',  color: 'bg-red-900/30 text-red-400 border-red-800/50' },
+  pending:  { label: 'Oczekuje',   color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-600 dark:text-amber-400' },
+  approved: { label: 'Zaakceptowana', color: 'bg-green-100 text-green-700 dark:bg-emerald-900/30 dark:text-green-600 dark:text-emerald-400' },
+  paid:     { label: 'Wypłacona',  color: 'bg-violet-100 text-violet-700 dark:bg-[#7C5CFC]/15 dark:text-[#9277FF]' },
+  rejected: { label: 'Odrzucona',  color: 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' },
 }
 
 export default async function AffiliatePayoutsPage() {
@@ -53,15 +53,15 @@ export default async function AffiliatePayoutsPage() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-8">
-      <h1 className="text-2xl font-bold text-[#F5F5F7]">💸 Wypłaty</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-[#F5F5F7]">💸 Wypłaty</h1>
 
       {/* Balance */}
-      <div className="bg-[#111114] border border-[#25252D] rounded-2xl p-8 text-center">
-        <p className="text-xs text-[#555] mb-2">Dostępne do wypłaty</p>
-        <p className="text-4xl font-bold text-[#F5F5F7]">
+      <div className="bg-white dark:bg-[#111114] border border-gray-200 dark:border-[#25252D] rounded-2xl p-8 text-center">
+        <p className="text-xs text-gray-400 dark:text-[#555] mb-2">Dostępne do wypłaty</p>
+        <p className="text-4xl font-bold text-gray-900 dark:text-[#F5F5F7]">
           {available.toLocaleString('pl-PL', { minimumFractionDigits: 2 })} zł
         </p>
-        <p className="text-[10px] text-[#555] mt-2">Minimalna kwota wypłaty: 10 zł</p>
+        <p className="text-[10px] text-gray-400 dark:text-[#555] mt-2">Minimalna kwota wypłaty: 10 zł</p>
 
         <div className="mt-6">
           <AffiliatePayoutButton available={available} />
@@ -70,19 +70,19 @@ export default async function AffiliatePayoutsPage() {
 
       {/* Summary */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-[#111114] border border-[#25252D] rounded-2xl p-5">
-          <p className="text-xs text-[#555] mb-1">⏳ Zarezerwowane</p>
-          <p className="text-xl font-bold text-amber-400">{reserved.toLocaleString('pl-PL', { minimumFractionDigits: 2 })} zł</p>
+        <div className="bg-white dark:bg-[#111114] border border-gray-200 dark:border-[#25252D] rounded-2xl p-5">
+          <p className="text-xs text-gray-400 dark:text-[#555] mb-1">⏳ Zarezerwowane</p>
+          <p className="text-xl font-bold text-amber-600 dark:text-amber-400">{reserved.toLocaleString('pl-PL', { minimumFractionDigits: 2 })} zł</p>
         </div>
-        <div className="bg-[#111114] border border-[#25252D] rounded-2xl p-5">
-          <p className="text-xs text-[#555] mb-1">💸 Wypłacone</p>
-          <p className="text-xl font-bold text-[#9277FF]">{totalPaid.toLocaleString('pl-PL', { minimumFractionDigits: 2 })} zł</p>
+        <div className="bg-white dark:bg-[#111114] border border-gray-200 dark:border-[#25252D] rounded-2xl p-5">
+          <p className="text-xs text-gray-400 dark:text-[#555] mb-1">💸 Wypłacone</p>
+          <p className="text-xl font-bold text-violet-600 dark:text-[#9277FF]">{totalPaid.toLocaleString('pl-PL', { minimumFractionDigits: 2 })} zł</p>
         </div>
       </div>
 
       {/* Payout history */}
-      <div className="bg-[#111114] border border-[#25252D] rounded-2xl p-6">
-        <h2 className="text-sm font-bold text-[#F5F5F7] mb-4">Historia wypłat</h2>
+      <div className="bg-white dark:bg-[#111114] border border-gray-200 dark:border-[#25252D] rounded-2xl p-6">
+        <h2 className="text-sm font-bold text-gray-900 dark:text-[#F5F5F7] mb-4">Historia wypłat</h2>
 
         {payouts && payouts.length > 0 ? (
           <div className="space-y-3">
@@ -90,15 +90,15 @@ export default async function AffiliatePayoutsPage() {
               const s = PAYOUT_STATUS[p.status] ?? PAYOUT_STATUS.pending
               const date = format(new Date(p.created_at), 'd.MM.yyyy', { locale: pl })
               return (
-                <div key={p.id} className="flex items-center justify-between gap-4 bg-[#15151A] rounded-xl px-4 py-3">
+                <div key={p.id} className="flex items-center justify-between gap-4 bg-gray-100 dark:bg-[#15151A] rounded-xl px-4 py-3">
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-[#F5F5F7]">{date}</p>
+                    <p className="text-sm text-gray-900 dark:text-[#F5F5F7]">{date}</p>
                     {p.rejection_reason && (
-                      <p className="text-[10px] text-red-400 mt-0.5 truncate">Powód: {p.rejection_reason}</p>
+                      <p className="text-[10px] text-red-600 dark:text-red-400 mt-0.5 truncate">Powód: {p.rejection_reason}</p>
                     )}
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className="text-sm font-bold text-[#F5F5F7]">{Number(p.amount).toLocaleString('pl-PL', { minimumFractionDigits: 2 })} zł</p>
+                    <p className="text-sm font-bold text-gray-900 dark:text-[#F5F5F7]">{Number(p.amount).toLocaleString('pl-PL', { minimumFractionDigits: 2 })} zł</p>
                     <span className={`inline-block mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-medium border ${s.color}`}>
                       {s.label}
                     </span>
@@ -108,7 +108,7 @@ export default async function AffiliatePayoutsPage() {
             })}
           </div>
         ) : (
-          <div className="text-center py-8 text-[#555] text-sm">
+          <div className="text-center py-8 text-gray-400 dark:text-[#555] text-sm">
             Brak wypłat
           </div>
         )}

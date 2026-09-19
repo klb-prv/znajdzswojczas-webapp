@@ -40,8 +40,8 @@ export default function AffiliateSidebar({ affiliateName, affiliateLogin }: Prop
             onClick={() => setMobileOpen(false)}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition ${
               active
-                ? 'bg-[#7C5CFC]/15 text-[#9277FF]'
-                : 'text-[#9A9AA3] hover:text-[#F5F5F7] hover:bg-[#15151A]'
+                ? 'bg-violet-100 text-violet-700 dark:bg-[#7C5CFC]/15 dark:text-[#9277FF]'
+                : 'text-gray-600 dark:text-[#9A9AA3] hover:text-gray-900 dark:hover:text-[#F5F5F7] hover:bg-gray-100 dark:hover:bg-[#15151A]'
             }`}
           >
             <span className="text-lg">{item.emoji}</span>
@@ -57,7 +57,7 @@ export default function AffiliateSidebar({ affiliateName, affiliateLogin }: Prop
       {/* Mobile hamburger */}
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-[#111114] border border-[#25252D] rounded-xl text-[#F5F5F7]"
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white dark:bg-[#111114] border border-gray-200 dark:border-[#25252D] rounded-xl text-gray-900 dark:text-[#F5F5F7] shadow-sm"
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
           {mobileOpen ? (
@@ -84,15 +84,15 @@ export default function AffiliateSidebar({ affiliateName, affiliateLogin }: Prop
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed top-0 left-0 z-40 h-full w-64 bg-[#111114] border-r border-[#25252D] flex flex-col transition-transform duration-200
+      <aside className={`fixed top-0 left-0 z-40 h-full w-64 bg-white dark:bg-[#111114] border-r border-gray-200 dark:border-[#25252D] flex flex-col transition-transform duration-200
         lg:translate-x-0 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
-        <div className="p-6 border-b border-[#25252D]">
+        <div className="p-6 border-b border-gray-200 dark:border-[#25252D]">
           <div className="flex items-center gap-3">
             <span className="text-2xl">✦</span>
             <div>
-              <p className="text-sm font-bold text-[#F5F5F7]">ZSC</p>
-              <p className="text-[10px] text-[#555]">Program afiliacyjny</p>
+              <p className="text-sm font-bold text-gray-900 dark:text-[#F5F5F7]">ZSC</p>
+              <p className="text-[10px] text-gray-400 dark:text-[#555]">Program afiliacyjny</p>
             </div>
           </div>
         </div>
@@ -100,15 +100,15 @@ export default function AffiliateSidebar({ affiliateName, affiliateLogin }: Prop
         <div className="flex-1 p-4 space-y-6">
           {nav}
 
-          <div className="border-t border-[#25252D] pt-4">
+          <div className="border-t border-gray-200 dark:border-[#25252D] pt-4">
             <div className="px-3 mb-3">
-              <p className="text-xs text-[#555]">Zalogowano jako</p>
-              <p className="text-sm font-medium text-[#F5F5F7] truncate">{affiliateName}</p>
-              <p className="text-[10px] text-[#555] font-mono">@{affiliateLogin}</p>
+              <p className="text-xs text-gray-400 dark:text-[#555]">Zalogowano jako</p>
+              <p className="text-sm font-medium text-gray-900 dark:text-[#F5F5F7] truncate">{affiliateName}</p>
+              <p className="text-[10px] text-gray-400 dark:text-[#555] font-mono">@{affiliateLogin}</p>
             </div>
             <button
               onClick={handleLogout}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[#9A9AA3] hover:text-red-400 hover:bg-red-950/20 transition w-full"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 dark:text-[#9A9AA3] hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 transition w-full"
             >
               <span className="text-lg">🚪</span>
               Wyloguj
