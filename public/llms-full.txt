@@ -1,0 +1,182 @@
+# znajdzswojczas.pl — pełna dokumentacja dla modeli językowych
+
+> niniejszy dokument zawiera skondensowaną, publicznie dostępną treść serwisu znajdzswojczas.pl: ofertę usług z cennikiem, zasady rezerwacji i płatności (regulamin), program partnerski oraz dokumentację widgetu promocyjnego. Realizatorem usług jest Kamil Baraniak (kbdev.run).
+
+---
+
+## 1. O serwisie
+
+**znajdzswojczas.pl** to polski serwis oferujący szybką pomoc techniczną i usługi IT dla osób fizycznych. Model działania:
+
+1. Klient wybiera wolny termin w kalendarzu na stronie głównej.
+2. Wypełnia formularz zgłoszeniowy (usługa, opis problemu, dane kontaktowe).
+3. Otrzymuje kod jednorazowy na e-mail (ważny 30 minut) i potwierdza zgłoszenie.
+4. Realizator kontaktuje się w ustalonym terminie (e-mail lub Discord).
+5. Po realizacji klient otrzymuje informację o płatności wraz z terminem zapłaty.
+
+Zasady rezerwacji:
+- Nie można rezerwować dnia dzisiejszego ani terminów przeszłych.
+- Przerwa świąteczna: 24 i 25 grudnia — brak rezerwacji.
+- Terminy mogą być blokowane lub przełożone przez Realizatora (klient jest informowany e-mailem).
+- Status zgłoszenia można sprawdzić w serwisie po jego numerze; zgłoszenie można anulować do momentu rozpoczęcia usługi (patrz §9 regulaminu — brak zwrotów za usługę rozpoczętą).
+
+---
+
+## 2. Usługi i cennik
+
+Ceny orientacyjne, brutto. Minimalna wartość jednorazowego zlecenia: **100 zł**. Ostateczna cena może być ustalana indywidualnie przed rozpoczęciem realizacji.
+
+### IT i pomoc techniczna
+| Usługa | Cena |
+|---|---|
+| Konsultacja IT / pomoc techniczna | od 100 zł / godzinę |
+| Instalacja i konfiguracja programu | od 100 zł |
+| Konfiguracja systemu | od 150 zł |
+| Diagnostyka problemu | od 150 zł |
+| Naprawa problemów programowych | od 150 zł |
+| Konfiguracja sprzętu | od 120 zł |
+| Bezpieczeństwo, hasła, konta | od 100 zł |
+| Backup i konfiguracja chmury | od 100 zł |
+| Pomoc z telefonem lub tabletem | od 80 zł / godzinę |
+
+### Streaming
+| Usługa | Cena |
+|---|---|
+| Diagnostyka problemów ze streamem | od 100 zł / godzinę |
+| Automatyzacja streamu / integracje | od 300 zł |
+
+### Strony internetowe
+| Usługa | Cena |
+|---|---|
+| Strona internetowa — Landing Page (jedna strona, responsywna, formularz kontaktowy) | od 400 zł |
+| Strona internetowa — Strona firmowa (do 5 podstron, wersja mobilna, podstawowe SEO) | od 800 zł |
+| Strona internetowa — Rozbudowana (panel administracyjny, integracje, niestandardowe funkcje) | od 1500 zł |
+| Aplikacja webowa | od 1500 zł |
+
+### Programowanie
+| Usługa | Cena |
+|---|---|
+| Mały skrypt / narzędzie | od 200 zł |
+| Prosty program | od 500 zł |
+| Program średniej złożoności | od 1000 zł |
+| Automatyzacja / bot / integracja | od 500 zł |
+| Rozbudowany system | wycena indywidualna |
+| Poprawki w istniejącym projekcie | od 100 zł / godzinę |
+
+### Pakiety usług (korzystniejsze cenowo zestawy)
+| Pakiet | Cena |
+|---|---|
+| 🎬 Konfiguracja streamu — podstawowy (OBS, sceny, audio, integracja z aplikacją mobilną, testy live) | od 180 zł |
+| 📱 Konfiguracja streamu mobilnego — IRL (stream z telefonu, testy stabilności transmisji mobilnej) | od 150 zł |
+| 🛠️ Infrastruktura live (serwer relay RTMP/SRT, automatyzacja, stabilizacja połączenia, routing OBS) | od 300 zł |
+| 🚀 Pełny setup live (kompleksowa konfiguracja OBS, stream IRL, testy i optymalizacja) | od 500 zł |
+
+### Usługi dodatkowe (opcje w formularzu)
+- ⚡ **Priorytetowa realizacja** — do 3 dni roboczych od potwierdzenia zgłoszenia, +15 zł (w miarę dostępności).
+- 🔥 **Natychmiastowa realizacja** — do 24 godzin od potwierdzenia zgłoszenia, +40 zł (w miarę dostępności).
+- Realizator może odmówić przyjęcia zlecenia z opcją priorytetową przy braku dostępności.
+
+---
+
+## 3. Płatności (najważniejsze zasady regulaminu)
+
+- Ceny w serwisie są orientacyjne i brutto; ostateczna cena zależy od zakresu, złożoności, czasu i technologii. Indywidualna wycena przedstawiana jest **przed rozpoczęciem realizacji**; rozpoczęcie następuje po jej akceptacji.
+- Zmiana zakresu prac po rozpoczęciu może zmienić cenę — dodatkowa wycena przedstawiana przed dodatkowymi pracami.
+- Termin płatności: **do 14 dni** (konsultacje i usługi niewymagające znacznego nakładu pracy) lub **do 7 dni** (usługi o znacznym nakładzie pracy — strony internetowe, programowanie) od daty wystawienia do zapłaty; szczegółowy termin w e-mailu po realizacji.
+- Zaliczka/zadatek: przy usługach > 250 zł lub wysokoskomplikowanych (m.in. konfiguracja dedykowanych serwerów, rozbudowana automatyzacja transmisji, pakiety, pełny setup live) — zadatek do 50% szacunkowej wartości, płatny w 7 dni od instrukcji; start prac dopiero po zaksięgowaniu. Zadatek bez zwrotu przy rezygnacji z winy klienta po rozpoczęciu prac (art. 394 KC); przy niewykonaniu z winy Realizatora — zwrot w podwójnej wysokości.
+- Odsetki ustawowe za opóźnienie (art. 481 KC) przy nieterminowej płatności.
+- Dokumentacja sprzedaży: paragon fiskalny (jeżeli dotyczy) lub faktura na dane osobowe **bez NIP nabywcy**. Brak możliwości wystawienia faktury VAT na działalność gospodarczą.
+- Prawa autorskie majątkowe do utworów powstałych przy realizacji (profile konfiguracyjne, skrypty, sceny OBS, ustawienia NOALBS) przechodzą na klienta po całkowitej zapłacie.
+- Aktualizacja cennika obowiązuje zgłoszenia złożone po publikacji nowej wersji.
+
+## 4. Zwroty, odstąpienie i reklamacje
+
+- Realizacja rozpoczyna się niezwłocznie po potwierdzeniu zgłoszenia — **rozpoczęta lub w pełni zrealizowana usługa nie podlega zwrotowi** (art. 38 ust. 1 pkt 1 ustawy o prawach konsumenta). Klient składając zgłoszenie wyraźnie żąda rozpoczęcia świadczenia przed upływem terminu na odstąpienie.
+- **Reklamacje**: do 2 lat od daty realizacji (e-mail informujący o wystawieniu do zapłaty). Zgłoszenie na **rodo@znajdzswojczas.pl** z numerem zgłoszenia, opisem problemu i oczekiwanym rozwiązaniem; rozpatrzenie w 14 dni kalendarzowych.
+- Spory konsumenckie: platforma ODR (ec.europa.eu/consumers/odr), WIIH, Stały Polubowny Sąd Konsumencki (uokik.gov.pl).
+- Klient: wyłącznie osoba fizyczna (także JDG), w celach prywatnych. Zgłoszenia osób prawnych mogą być odrzucone lub anulowane.
+
+## 5. Kody zniżkowe
+
+- Kody jednorazowe, mogą mieć datę ważności lub limit użyć; nie łączą się.
+- Kod obniża **wartość szacunkową** usługi, nie wpływa na cenę ostateczną ustalaną indywidualnie.
+- Niezgodne z przeznaczeniem użycie kodu: anulowanie zgłoszenia lub wezwanie do dopłaty różnicy; realizacja wstrzymana do uregulowania pełnej kwoty.
+
+---
+
+## 6. Program partnerski (regulamin publiczny)
+
+Program umożliwia przypisywanie klientów do partnerów przez unikalne kody polecające; każdy kod przypisany jest na stałe do jednej osoby.
+
+- **Prowizja standardowa: 3%** od opłaconej transakcji, liczona od finalnej kwoty usługi; nie obejmuje anulowanych/zwróconych płatności.
+- **Wypłata możliwa od salda 10,00 zł**; rozliczenia cykliczne lub ręczne; czas realizacji do ustalenia indywidualnie; wypłata może być wstrzymana w trakcie weryfikacji.
+- Kod może aktywować rabat dla klienta — wysokość ustalana indywidualnie; rabaty nie łączą się z innymi promocjami; rabat i prowizja naliczane niezależnie.
+- Kody bez aktywnego partnera są unieważniane automatycznie; kod może zostać dezaktywowany (m.in. brak aktywności, naruszenie regulaminu, nadużycia, fałszywe transakcje). Unieważnienie = brak dalszych prowizji.
+- Zakazy: self-referral, wiele kodów do jednej transakcji, manipulacja rabatami, fałszywe polecenia, handel kodami, podszywanie się, dzielenie prowizji poza systemem, omijanie systemu rezerwacji, ingerencja w naliczanie, wykorzystywanie błędów bez zgłoszenia.
+- Program ma charakter zamknięty (invite-only / zaufani partnerzy); trwa nabór — wybrane osoby zapraszane są przez Discord lub e-mail.
+- W sporze decydują dane z systemu rezerwacji; ostateczna decyzja o naliczeniu prowizji należy do systemu.
+- Szczegóły: https://znajdzswojczas.pl/regulamin/partnerzy
+
+---
+
+## 7. Promo Widget API
+
+Animowane banery reklamowe do osadzania na stronach zewnętrznych (iframe), promujące usługi znajdzswojczas.pl. Dokumentacja: https://znajdzswojczas.pl/promo
+
+### Endpointy (GET)
+| Endpoint | Szerokość | Opis |
+|---|---|---|
+| `/promo/mini_block` | 380px | Poziomy baner — pierwsza linia adres, druga rabat i kod promocyjny |
+| `/promo/macro_block` | 320px | Kompaktowy baner — domena na górze, rabat i kod poniżej |
+
+### Parametry URL (wszystkie opcjonalne)
+| Parametr | Typ | Domyślnie | Opis |
+|---|---|---|---|
+| `promo_code` | string | — | Kod rabatowy; musi być aktywny, niewygasły i niewyczerpany |
+| `size` | number 1–10 | 1 | Mnożnik rozmiaru; skala rośnie o połowę kroku (size=2 → 1.5×, size=3 → 2×); max 10 |
+| `alternative_version` | `"1"` | — | Gradient #2D5AD5 → #1B1F2E zamiast domyślnego czarnego |
+
+### Walidacja kodu
+Kod nieprawidłowy / `active=false` / wygasły / `used_count >= max_uses` → placeholder `??% ZNIŻKI / XXXXXXXX`. Kod prawidłowy → wartość z bazy (`percent` lub `fixed`).
+
+### Przykłady
+```
+https://znajdzswojczas.pl/promo/mini_block?promo_code=OLKOFF26
+https://znajdzswojczas.pl/promo/mini_block?promo_code=OLKOFF26&size=2&alternative_version=1
+https://znajdzswojczas.pl/promo/macro_block?promo_code=OLKOFF26&size=3&alternative_version=1
+```
+
+```html
+<iframe
+  src="https://znajdzswojczas.pl/promo/mini_block?promo_code=OLKOFF26"
+  width="380" height="48"
+  frameborder="0" scrolling="no"
+  style="border:none; overflow:hidden;"
+></iframe>
+```
+
+---
+
+## 8. Prywatność i RODO (streszczenie)
+
+- Administrator: znajdzswojczas.pl (Kamil Baraniak, kbdev.run). Kontakt: **rodo@znajdzswojczas.pl**.
+- Dane: imię i nazwisko, e-mail, opis zgłoszenia i termin, adres IP złożenia zgłoszenia, opcjonalnie nick Discord.
+- Cel: realizacja usług i komunikacja z klientem. Podstawa: art. 6 ust. 1 lit. b i f RODO.
+- Okres: czas niezbędny do realizacji, potem zgodnie z przepisami lub do sprzeciwu.
+- Prawa: dostęp, sprostowanie, usunięcie, ograniczenie, przenoszenie, skarga do UODO. Wniosek: e-mail z tematem `RODO - [rodzaj żądania]`, danymi zgłoszenia i opisem żądania.
+- Odbiorcy: dostawcy usług technicznych (hosting, baza danych, wysyłka e-mail) w zakresie niezbędnym.
+- Cookies: wyłącznie funkcjonalne (np. preferencja motywu), bez celów marketingowych.
+- Naduzycia serwisu: dane mogą być przekazane organom ścigania (art. 6 ust. 1 lit. c/f RODO, art. 304 KPK).
+
+---
+
+## 9. Kontakt i identyfikacja
+
+- Serwis: https://znajdzswojczas.pl
+- Realizator Usługi: Kamil Baraniak (kbdev.run)
+- E-mail kontaktowy (RODO/reklamacje): rodo@znajdzswojczas.pl
+- Regulamin: obowiązuje od 08.03.2026 (aktualizacja 04.09.2026) — https://znajdzswojczas.pl/regulamin
+- Program partnerski: https://znajdzswojczas.pl/regulamin/partnerzy
+- Widget promo API: https://znajdzswojczas.pl/promo
+
+*Dokument przygotowany na podstawie publicznie dostępnych treści serwisu (regulamin, cennik, dokumentacja widgetu, polityka prywatności/RODO). Wersja: 2026-09-19.*

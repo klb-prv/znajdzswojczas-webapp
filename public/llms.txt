@@ -1,0 +1,41 @@
+# znajdzswojczas.pl
+
+> znajdzswojczas.pl to polski serwis oferujący szybką pomoc techniczną i usługi IT: konsultacje, instalacje, konfiguracje systemów i sprzętu, bezpieczeństwo, backup, pomoc z telefonem/tabletem, konfigurację streamów (OBS, IRL, infrastruktura live), tworzenie stron internetowych, aplikacji webowych oraz programowanie (skrypty, boty, automatyzacje). Klient wybiera termin w kalendarzu, wypełnia formularz zgłoszenia i potwierdza zgłoszenie kodem wysłanym e-mailem. Realizatorem usług jest Kamil Baraniak (kbdev.run).
+
+Kluczowe informacje (na podstawie publicznie dostępnego regulaminu, obowiązującego od 08.03.2026, aktualizacja 04.09.2026):
+
+- Klient: wyłącznie osoba fizyczna (także JDG) — usługi w celach prywatnych, bez faktur VAT z NIP nabywcy dla firm.
+- Ceny orientacyjne, brutto; minimalna wartość zlecenia: 100 zł; realizacja pilna: dopłata do 50% wartości usługi.
+- Płatność: do 14 dni (konsultacje/usługi drobne) lub do 7 dni (strony, programowanie) od wystawienia do zapłaty; zadatek do 50% przy usługach > 250 zł lub złożonych.
+- Brak zwrotów za usługę rozpoczętą lub zrealizowaną; przysługuje reklamacja (2 lata, odpowiedź w 14 dni, adres: rodo@znajdzswojczas.pl).
+- Rezerwacje: nie można zamawiać dnia dzisiejszego ani przeszłego; przerwa świąteczna 24–25 grudnia.
+- Kody zniżkowe: jednorazowe, nie łączą się, obniżają wartość szacunkową (nie cenę ostateczną).
+- Program partnerski (invite-only): kody polecające, standardowa prowizja 3% od opłaconej transakcji, wypłata od salda 10 zł.
+- Kontakt RODO/reklamacje: rodo@znajdzswojczas.pl.
+
+## Usługi i cennik
+
+- [Strona główna (rezerwacja terminu)](https://znajdzswojczas.pl/): Kalendarz wolnych terminów i formularz zgłoszeniowy; sprawdzenie statusu zgłoszenia po numerze.
+- [Usługi i ceny](https://znajdzswojczas.pl/uslugi): Pełny cennik usług IT, streamingowych, stron internetowych i programowania oraz pakiety usług (konfiguracja streamu, IRL, infrastruktura live, pełny setup live).
+
+## Zasady i dokumenty
+
+- [Regulamin](https://znajdzswojczas.pl/regulamin): Definicje, zasady rezerwacji, ceny i wycena indywidualna, zakres usługi, zaliczki i zadatek, kody zniżkowe, usługi dodatkowe (priorytet/natychmiast), odstąpienie i brak zwrotów, reklamacje, ODR.
+- [Regulamin programu partnerskiego](https://znajdzswojczas.pl/regulamin/partnerzy): System kodów polecających, prowizje, rabaty dla klientów, zasady wypłat, zakaz nadużyć, unieważnianie kodów.
+
+## Widget promocyjny (API)
+
+- [Dokumentacja Promo Widget API](https://znajdzswojczas.pl/promo): Animowane banery do osadzania na stronach zewnętrznych jako iframe; parametry URL i walidacja kodów.
+- [Mini Block](https://znajdzswojczas.pl/promo/mini_block?promo_code=DEMO): Poziomy baner 380px (adres + rabat i kod).
+- [Macro Block](https://znajdzswojczas.pl/promo/macro_block?promo_code=DEMO): Kompaktowy baner 320px (domena, rabat i kod).
+
+## Narzędzia dla klienta
+
+- [Anuluj zgłoszenie](https://znajdzswojczas.pl/anuluj): Anulowanie zgłoszenia po numerie (dopóki usługa nie rozpoczęła się).
+- [Status zgłoszenia](https://znajdzswojczas.pl/status/NR_ZGLOSZENIA): Publiczny podgląd statusu po identyfikatorze zgłoszenia.
+
+## Optional
+
+- [Polityka prywatności](https://znajdzswojczas.pl/polityka-prywatnosci): Zakres zbieranych danych, cel, podstawa prawna, okres przechowywania, pliki cookie.
+- [RODO — Twoje prawa](https://znajdzswojczas.pl/rodo): Prawa użytkownika (dostęp, sprostowanie, usunięcie) i sposób składania wniosków.
+- [Sitemap](https://znajdzswojczas.pl/sitemap.xml): Lista indeksowanych adresów serwisu.
