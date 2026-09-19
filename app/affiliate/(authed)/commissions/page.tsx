@@ -1,7 +1,5 @@
-import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/server'
-import { verifyAffiliateSession, AFFILIATE_SESSION_COOKIE } from '@/lib/affiliate-session'
+import { requireAffiliateContext } from '@/lib/affiliate-auth'
 import { format } from 'date-fns'
 import { pl } from 'date-fns/locale'
 
@@ -14,25 +12,18 @@ const STATUS: Record<string, { label: string; color: string }> = {
 }
 
 export default async function AffiliateCommissionsPage() {
-  const cookieStore = await cookies()
-  const token = cookieStore.get(AFFILIATE_SESSION_COOKIE)?.value
-  if (!token) redirect('/affiliate/login')
-
-  const affiliateId = await verifyAffiliateSession(token)
-  if (!affiliateId) redirect('/affiliate/login')
-
+  const affiliate = await requireAffiliateContext()
   const supabase = createAdminClient()
 
   let commissions: { id: string; promo_code: string | null; service_name: string | null; order_id: string | null; commission_amount: number; order_amount: number; discount_amount: number; affiliate_commission_rate: number; status: string; created_at: string }[] = []
 
-  try {
-    const { data } = await supabase
-      .from('affiliate_commissions')
-      .select('*')
-      .eq('affiliate_id', affiliateId)
-      .order('created_at', { ascending: false }) as { data: { id: string; promo_code: string | null; service_name: string | null; order_id: string | null; commission_amount: number; order_amount: number; discount_amount: number; affiliate_commission_rate: number; status: string; created_at: string }[] | null }
-    commissions = data ?? []
-  } catch {}
+  const { data } = await supabase
+    .from('affiliate_commissions')
+    .select('id, promo_code, service_name, order_id, commission_amount, order_amount, discount_amount, affiliate_commission_rate, status, created_at')
+    .eq('affiliate_id', affiliate.id)
+    .order('created_at', { ascending: false })
+
+  commissions = (data ?? []) as typeof commissions
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">

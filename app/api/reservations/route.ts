@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { after, NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createAdminClient } from '@/lib/supabase/server'
 import { sendVerificationEmail } from '@/lib/email'
@@ -26,22 +26,7 @@ export async function POST(req: NextRequest) {
     const data = schema.parse(body)
     const supabase = createAdminClient()
 
-    // Sprawdź status serwisu
-    const { data: settings } = await supabase
-      .from('site_settings')
-      .select('status')
-      .eq('id', 1)
-      .single()
-
-    const siteStatus = settings?.status ?? 'accepting'
-    if (siteStatus === 'maintenance') {
-      return NextResponse.json({ error: 'Serwis jest obecnie w trakcie przerwy technicznej. Spróbuj ponownie za chwilę.' }, { status: 503 })
-    }
-    if (siteStatus === 'closed') {
-      return NextResponse.json({ error: 'Przyjmowanie nowych zgłoszeń jest tymczasowo wstrzymane.' }, { status: 503 })
-    }
-
-    // Blokada dnia dzisiejszego i przeszłości
+    // Walidacje lokalne przed zapytaniami
     const todayStr = format(new Date(), 'yyyy-MM-dd')
     if (data.date <= todayStr) {
       return NextResponse.json({ error: 'Nie można rezerwować dnia dzisiejszego ani w przeszłości' }, { status: 400 })
@@ -53,25 +38,38 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'W tym dniu nie przyjmujemy rezerwacji (Święta Bożego Narodzenia)' }, { status: 400 })
     }
 
-    // Sprawdź czy data nie jest zablokowana
-    const { data: blocked } = await supabase
-      .from('blocked_dates')
-      .select('id')
-      .eq('date', data.date)
-      .single()
+    // Status serwisu + blokada daty + zajętość terminu - równolegle
+    const [settingsRes, blockedRes, existingRes] = await Promise.all([
+      supabase
+        .from('site_settings')
+        .select('status')
+        .eq('id', 1)
+        .maybeSingle(),
+      supabase
+        .from('blocked_dates')
+        .select('id')
+        .eq('date', data.date)
+        .maybeSingle(),
+      supabase
+        .from('reservations')
+        .select('id')
+        .eq('date', data.date)
+        .in('status', ['pending_confirmation', 'confirmed']),
+    ])
 
-    if (blocked) {
+    const siteStatus = settingsRes.data?.status ?? 'accepting'
+    if (siteStatus === 'maintenance') {
+      return NextResponse.json({ error: 'Serwis jest obecnie w trakcie przerwy technicznej. Spróbuj ponownie za chwilę.' }, { status: 503 })
+    }
+    if (siteStatus === 'closed') {
+      return NextResponse.json({ error: 'Przyjmowanie nowych zgłoszeń jest tymczasowo wstrzymane.' }, { status: 503 })
+    }
+
+    if (blockedRes.data) {
       return NextResponse.json({ error: 'Wybrany termin jest niedostępny' }, { status: 400 })
     }
 
-    // Sprawdź czy data nie jest już zajęta rezerwacją
-    const { data: existing } = await supabase
-      .from('reservations')
-      .select('id')
-      .eq('date', data.date)
-      .in('status', ['pending_confirmation', 'confirmed'])
-
-    if (existing && existing.length > 0) {
+    if (existingRes.data && existingRes.data.length > 0) {
       return NextResponse.json({ error: 'Ten termin jest już zajęty' }, { status: 409 })
     }
 
@@ -154,29 +152,33 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Błąd przy tworzeniu rezerwacji' }, { status: 500 })
     }
 
-    // Ustaw krótkie ID widoczne dla klienta
+    // Ustaw krótkie ID widoczne dla klienta + kod weryfikacyjny (ważny 30 min)
     const reservationNumber = reservation.id.slice(0, 8).toUpperCase()
-    await supabase
-      .from('reservations')
-      .update({ reservation_number: reservationNumber, ...(clientIp ? { client_ip: clientIp } : {}) })
-      .eq('id', reservation.id)
-
-    // Utwórz kod weryfikacyjny (ważny 30 min)
     const code = generateCode()
     const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString()
 
-    await supabase.from('verification_codes').insert({
-      reservation_id: reservation.id,
-      code,
-      expires_at: expiresAt,
-    })
+    await Promise.all([
+      supabase
+        .from('reservations')
+        .update({ reservation_number: reservationNumber, ...(clientIp ? { client_ip: clientIp } : {}) })
+        .eq('id', reservation.id),
+      supabase.from('verification_codes').insert({
+        reservation_id: reservation.id,
+        code,
+        expires_at: expiresAt,
+      }),
+    ])
 
-    // Wyślij email
+    // Email wysyłany po zwróceniu odpowiedzi - klient nie czeka na Resend
     const formattedDate = format(new Date(data.date), 'd MMMM yyyy', { locale: pl })
     const discordNick = data.contact_method === 'discord' && data.discord_nick?.trim()
       ? data.discord_nick.trim()
       : undefined
-    await sendVerificationEmail(data.email, data.name, code, reservation.id, formattedDate, discordNick)
+    after(async () => {
+      try {
+        await sendVerificationEmail(data.email, data.name, code, reservation.id, formattedDate, discordNick)
+      } catch {}
+    })
 
     return NextResponse.json({ reservation_id: reservation.id }, { status: 201 })
   } catch (err) {

@@ -1,7 +1,5 @@
-import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/server'
-import { verifyAffiliateSession, AFFILIATE_SESSION_COOKIE } from '@/lib/affiliate-session'
+import { requireAffiliateContext } from '@/lib/affiliate-auth'
 import { format } from 'date-fns'
 import { pl } from 'date-fns/locale'
 
@@ -13,19 +11,13 @@ const STATUS_MAP: Record<string, { label: string; color: string }> = {
 }
 
 export default async function AffiliateReferralsPage() {
-  const cookieStore = await cookies()
-  const token = cookieStore.get(AFFILIATE_SESSION_COOKIE)?.value
-  if (!token) redirect('/affiliate/login')
-
-  const affiliateId = await verifyAffiliateSession(token)
-  if (!affiliateId) redirect('/affiliate/login')
-
+  const affiliate = await requireAffiliateContext()
   const supabase = createAdminClient()
 
   const { data: referrals } = await supabase
     .from('affiliate_referrals')
     .select('*')
-    .eq('affiliate_id', affiliateId)
+    .eq('affiliate_id', affiliate.id)
     .order('created_at', { ascending: false }) as { data: { id: string; service_name: string; client_label: string; order_value: number; commission_amount: number; status: string; created_at: string }[] | null }
 
   return (

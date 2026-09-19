@@ -1,7 +1,5 @@
-import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/server'
-import { verifyAffiliateSession, AFFILIATE_SESSION_COOKIE } from '@/lib/affiliate-session'
+import { requireAffiliateContext } from '@/lib/affiliate-auth'
 import { format } from 'date-fns'
 import { pl } from 'date-fns/locale'
 import AffiliatePayoutButton from '@/components/AffiliatePayoutButton'
@@ -14,13 +12,7 @@ const PAYOUT_STATUS: Record<string, { label: string; color: string }> = {
 }
 
 export default async function AffiliatePayoutsPage() {
-  const cookieStore = await cookies()
-  const token = cookieStore.get(AFFILIATE_SESSION_COOKIE)?.value
-  if (!token) redirect('/affiliate/login')
-
-  const affiliateId = await verifyAffiliateSession(token)
-  if (!affiliateId) redirect('/affiliate/login')
-
+  const affiliate = await requireAffiliateContext()
   const supabase = createAdminClient()
 
   let commissions: { commission_amount: number; status: string }[] = []
@@ -30,26 +22,25 @@ export default async function AffiliatePayoutsPage() {
   let reserved = 0
   let available = 0
 
-  try {
-    const { data: commData } = await supabase
+  const [commRes, payoutRes] = await Promise.all([
+    supabase
       .from('affiliate_commissions')
       .select('commission_amount, status')
-      .eq('affiliate_id', affiliateId) as { data: { commission_amount: number; status: string }[] | null }
-
-    const { data: payoutData } = await supabase
+      .eq('affiliate_id', affiliate.id),
+    supabase
       .from('affiliate_payouts')
-      .select('*')
-      .eq('affiliate_id', affiliateId)
-      .order('created_at', { ascending: false }) as { data: { id: string; amount: number; status: string; rejection_reason: string | null; created_at: string }[] | null }
+      .select('id, amount, status, rejection_reason, created_at')
+      .eq('affiliate_id', affiliate.id)
+      .order('created_at', { ascending: false }),
+  ])
 
-    commissions = commData ?? []
-    payouts = payoutData ?? []
+  commissions = (commRes.data ?? []) as typeof commissions
+  payouts = (payoutRes.data ?? []) as typeof payouts
 
-    totalAvailable = commissions.filter((c) => c.status === 'available').reduce((sum, c) => sum + Number(c.commission_amount), 0)
-    totalPaid = payouts.filter((p) => p.status === 'paid').reduce((sum, p) => sum + Number(p.amount), 0)
-    reserved = payouts.filter((p) => p.status === 'pending' || p.status === 'approved').reduce((sum, p) => sum + Number(p.amount), 0)
-    available = Math.max(0, totalAvailable - reserved)
-  } catch {}
+  totalAvailable = commissions.filter((c) => c.status === 'available').reduce((sum, c) => sum + Number(c.commission_amount), 0)
+  totalPaid = payouts.filter((p) => p.status === 'paid').reduce((sum, p) => sum + Number(p.amount), 0)
+  reserved = payouts.filter((p) => p.status === 'pending' || p.status === 'approved').reduce((sum, p) => sum + Number(p.amount), 0)
+  available = Math.max(0, totalAvailable - reserved)
 
   return (
     <div className="max-w-3xl mx-auto space-y-8">

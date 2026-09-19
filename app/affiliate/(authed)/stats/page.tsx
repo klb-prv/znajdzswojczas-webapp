@@ -1,36 +1,30 @@
-import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/server'
-import { verifyAffiliateSession, AFFILIATE_SESSION_COOKIE } from '@/lib/affiliate-session'
+import { requireAffiliateContext } from '@/lib/affiliate-auth'
 
 export default async function AffiliateStatsPage() {
-  const cookieStore = await cookies()
-  const token = cookieStore.get(AFFILIATE_SESSION_COOKIE)?.value
-  if (!token) redirect('/affiliate/login')
-
-  const affiliateId = await verifyAffiliateSession(token)
-  if (!affiliateId) redirect('/affiliate/login')
-
+  const affiliate = await requireAffiliateContext()
   const supabase = createAdminClient()
 
-  const { data: referrals } = await supabase
-    .from('affiliate_referrals')
-    .select('commission_amount, order_value, status, created_at')
-    .eq('affiliate_id', affiliateId) as { data: { commission_amount: number; order_value: number; status: string; created_at: string }[] | null }
+  const [referralsRes, clicksRes] = await Promise.all([
+    supabase
+      .from('affiliate_commissions')
+      .select('commission_amount, order_amount, status, created_at')
+      .eq('affiliate_id', affiliate.id),
+    supabase
+      .from('affiliate_clicks')
+      .select('id', { count: 'exact', head: true })
+      .eq('affiliate_id', affiliate.id),
+  ])
 
-  const { data: clicks } = await supabase
-    .from('affiliate_clicks')
-    .select('created_at')
-    .eq('affiliate_id', affiliateId) as { data: { created_at: string }[] | null }
-
-  const totalClicks = clicks?.length ?? 0
+  const referrals = referralsRes.data as { commission_amount: number; order_amount: number; status: string; created_at: string }[] | null
+  const totalClicks = clicksRes.count ?? 0
   const totalReferrals = referrals?.length ?? 0
   const conversionRate = totalClicks > 0 ? ((totalReferrals / totalClicks) * 100).toFixed(1) : '0.0'
   const totalRevenue = referrals
-    ?.filter((r) => r.status === 'approved' || r.status === 'paid')
-    .reduce((sum, r) => sum + Number(r.order_value), 0) ?? 0
+    ?.filter((r) => r.status === 'available' || r.status === 'reserved' || r.status === 'paid')
+    .reduce((sum, r) => sum + Number(r.order_amount), 0) ?? 0
   const totalCommission = referrals
-    ?.filter((r) => r.status === 'approved' || r.status === 'paid')
+    ?.filter((r) => r.status === 'available' || r.status === 'reserved' || r.status === 'paid')
     .reduce((sum, r) => sum + Number(r.commission_amount), 0) ?? 0
 
   return (

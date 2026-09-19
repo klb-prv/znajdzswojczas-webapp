@@ -1,39 +1,9 @@
-import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
-import { createAdminClient } from '@/lib/supabase/server'
-import { verifyAffiliateSession, AFFILIATE_SESSION_COOKIE } from '@/lib/affiliate-session'
+import { requireAffiliateContext } from '@/lib/affiliate-auth'
 import AffiliateSidebar from '@/components/AffiliateSidebar'
 
 export default async function AffiliateAuthedLayout({ children }: { children: React.ReactNode }) {
-  const cookieStore = await cookies()
-  const token = cookieStore.get(AFFILIATE_SESSION_COOKIE)?.value
-
-  if (!token) {
-    redirect('/affiliate/login')
-  }
-
-  const affiliateId = await verifyAffiliateSession(token)
-  if (!affiliateId) {
-    redirect('/affiliate/login')
-  }
-
-  const supabase = createAdminClient()
-
-  let affiliate: { id: string; login: string; name: string; referral_code: string; commission_percent: number } | null = null
-  try {
-    const result = await supabase
-      .from('affiliates')
-      .select('id, login, name, referral_code, commission_percent')
-      .eq('id', affiliateId)
-      .single()
-    affiliate = result.data
-  } catch {
-    redirect('/affiliate/login')
-  }
-
-  if (!affiliate) {
-    redirect('/affiliate/login')
-  }
+  // Cached per request - shared with pages, no duplicate DB round-trip
+  const affiliate = await requireAffiliateContext()
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#09090B] flex">

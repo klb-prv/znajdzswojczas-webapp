@@ -25,15 +25,19 @@ export async function POST(req: NextRequest) {
 
     const supabase = createAdminClient()
 
-    const { data: commissions } = await supabase
-      .from('affiliate_commissions')
-      .select('commission_amount, status')
-      .eq('affiliate_id', affiliateId) as { data: { commission_amount: number; status: string }[] | null }
+    const [commissionsRes, existingPayoutsRes] = await Promise.all([
+      supabase
+        .from('affiliate_commissions')
+        .select('commission_amount, status')
+        .eq('affiliate_id', affiliateId),
+      supabase
+        .from('affiliate_payouts')
+        .select('amount, status')
+        .eq('affiliate_id', affiliateId),
+    ])
 
-    const { data: existingPayouts } = await supabase
-      .from('affiliate_payouts')
-      .select('amount, status')
-      .eq('affiliate_id', affiliateId) as { data: { amount: number; status: string }[] | null }
+    const commissions = commissionsRes.data as { commission_amount: number; status: string }[] | null
+    const existingPayouts = existingPayoutsRes.data as { amount: number; status: string }[] | null
 
     const totalAvailable = commissions
       ?.filter((c) => c.status === 'available')

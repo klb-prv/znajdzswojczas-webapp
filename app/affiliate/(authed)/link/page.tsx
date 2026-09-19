@@ -1,35 +1,24 @@
-'use client'
+import { createAdminClient } from '@/lib/supabase/server'
+import { requireAffiliateContext } from '@/lib/affiliate-auth'
+import AffiliateLinkCopyBox from '@/components/AffiliateLinkCopyBox'
 
-import { useState, useEffect } from 'react'
+export default async function AffiliateLinkPage() {
+  const affiliate = await requireAffiliateContext()
+  const supabase = createAdminClient()
 
-interface LinkStats {
-  clicks: number
-  referrals: number
-  approved: number
-}
+  const [clicksRes, referralsRes] = await Promise.all([
+    supabase
+      .from('affiliate_clicks')
+      .select('id', { count: 'exact', head: true })
+      .eq('affiliate_id', affiliate.id),
+    supabase
+      .from('affiliate_commissions')
+      .select('status')
+      .eq('affiliate_id', affiliate.id),
+  ])
 
-export default function AffiliateLinkPage() {
-  const [refCode, setRefCode] = useState('')
-  const [stats, setStats] = useState<LinkStats>({ clicks: 0, referrals: 0, approved: 0 })
-  const [copied, setCopied] = useState(false)
-
-  useEffect(() => {
-    fetch('/api/affiliate/stats')
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.referralCode) setRefCode(data.referralCode)
-        if (data.stats) setStats(data.stats)
-      })
-      .catch(() => {})
-  }, [])
-
-  const fullUrl = refCode ? `https://znajdzswojczas.pl/?ref=${refCode}` : ''
-
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(fullUrl)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
+  const referrals = (referralsRes.data ?? []) as { status: string }[]
+  const fullUrl = `https://znajdzswojczas.pl/?ref=${affiliate.referral_code}`
 
   return (
     <div className="max-w-3xl mx-auto space-y-8">
@@ -40,30 +29,21 @@ export default function AffiliateLinkPage() {
           Udostępniaj ten link i otrzymuj prowizję za zakwalifikowane zamówienia.
         </p>
 
-        <div className="flex items-center gap-3">
-          <div className="flex-1 bg-gray-100 dark:bg-[#15151A] border border-gray-200 dark:border-[#25252D] rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-[#F5F5F7] font-mono truncate">
-            {fullUrl || '…'}
-          </div>
-          <button
-            onClick={handleCopy}
-            disabled={!refCode}
-            className="px-5 py-3 bg-violet-600 hover:bg-violet-700 dark:bg-[#7C5CFC] dark:hover:bg-[#9277FF] text-white rounded-xl text-sm font-semibold transition disabled:opacity-50 whitespace-nowrap"
-          >
-            {copied ? '✓ Skopiowano' : '📋 Kopiuj'}
-          </button>
-        </div>
+        <AffiliateLinkCopyBox fullUrl={fullUrl} displayUrl={`znajdzswojczas.pl/?ref=${affiliate.referral_code}`} />
 
         <div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-200 dark:border-[#25252D]">
           <div className="text-center">
-            <p className="text-2xl font-bold text-gray-900 dark:text-[#F5F5F7]">{stats.clicks}</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-[#F5F5F7]">{clicksRes.count ?? 0}</p>
             <p className="text-xs text-gray-400 dark:text-[#555]">Kliknięcia</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold text-gray-900 dark:text-[#F5F5F7]">{stats.referrals}</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-[#F5F5F7]">{referrals.length}</p>
             <p className="text-xs text-gray-400 dark:text-[#555]">Polecenia</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold text-gray-900 dark:text-[#F5F5F7]">{stats.approved}</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-[#F5F5F7]">
+              {referrals.filter((r) => r.status === 'available' || r.status === 'reserved' || r.status === 'paid').length}
+            </p>
             <p className="text-xs text-gray-400 dark:text-[#555]">Zatwierdzone</p>
           </div>
         </div>
