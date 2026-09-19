@@ -106,14 +106,20 @@ export default function AffiliatePromoMaterials({ partnerCode }: { partnerCode: 
             onChange={(e) => setAlt(e.target.checked)}
             className="w-4 h-4 accent-violet-600 dark:accent-[#7C5CFC]"
           />
-          <span className="text-xs text-gray-600 dark:text-[#9A9AA3]">Alternatywna wersja (niebieski gradient)</span>
+          <span className="text-xs text-gray-600 dark:text-[#9A9AA3]">Wersja alternatywna (z niebieskim gradient)</span>
         </label>
       </div>
 
       {WIDGETS.map((w) => {
         const previewSrc = query(w.path)
         const absoluteUrl = `${BASE}${query(w.path)}`
-        const iframeSnippet = `<iframe\n  src="${absoluteUrl}"\n  width="${w.width}" height="${w.height}"\n  frameborder="0" scrolling="no"\n  style="border:none; overflow:hidden;"\n></iframe>`
+        // Baner skaluje się CSS-owym zoom (1 + (size-1)*0.5), więc ramka iframe musi
+        // urosnąć tym samym czynnikiem - inaczej powiększona treść wychodzi poza
+        // stały wymiar iframe i jest przycinana.
+        const zoom = 1 + (size - 1) * 0.5
+        const dispW = Math.round(w.width * zoom)
+        const dispH = Math.round(w.height * zoom)
+        const iframeSnippet = `<iframe\n  src="${absoluteUrl}"\n  width="${dispW}" height="${dispH}"\n  frameborder="0" scrolling="no"\n  style="border:none; overflow:hidden;"\n></iframe>`
 
         return (
           <div key={w.id} className="bg-white dark:bg-[#111114] border border-gray-200 dark:border-[#25252D] rounded-2xl p-6 space-y-4">
@@ -128,8 +134,8 @@ export default function AffiliatePromoMaterials({ partnerCode }: { partnerCode: 
               <div className="bg-gray-100 dark:bg-[#0d0d10] rounded-xl p-4 overflow-auto">
                 <iframe
                   src={previewSrc}
-                  width={w.width}
-                  height={w.height}
+                  width={dispW}
+                  height={dispH}
                   scrolling="no"
                   title={w.label}
                   style={{ border: 'none', overflow: 'hidden', display: 'block' }}
