@@ -143,11 +143,24 @@ export async function POST(req: NextRequest) {
       ...(discountCodeId ? { discount_code_id: discountCodeId } : {}),
     }
 
-    const { data: reservation, error: resErr } = await supabase
+    let { data: reservation, error: resErr } = await supabase
       .from('reservations')
       .insert(insertData)
       .select()
       .single()
+
+    // Kolumny kodów istnieją dopiero po migracji 2026_affiliate_panel_full.sql -
+    // przy ich braku rezerwacja i tak musi przejść (bez powiązania z prowizją)
+    if (resErr && resErr.code === '42703') {
+      const { affiliate_promo_code_id: _apc, discount_code_id: _dci, ...safeData } = insertData
+      const retry = await supabase
+        .from('reservations')
+        .insert(safeData)
+        .select()
+        .single()
+      reservation = retry.data
+      resErr = retry.error
+    }
 
     if (resErr || !reservation) {
       return NextResponse.json({ error: 'Błąd przy tworzeniu rezerwacji' }, { status: 500 })

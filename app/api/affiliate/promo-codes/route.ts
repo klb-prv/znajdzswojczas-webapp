@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
     // aby nie ominąć limitu, zamiast pozwalać na nieograniczone kody.
     if (countError) {
       return NextResponse.json(
-        { error: 'Tworzenie własnych kodów wymaga aktualizacji bazy. Skontaktuj się z administratorem.' },
+        { error: 'Tworzenie własnych kodów wymaga migracji bazy (affiliate_promo_codes.created_by). Uruchom supabase/migrations/2026_affiliate_panel_full.sql w Supabase SQL Editor.' },
         { status: 503 }
       )
     }
