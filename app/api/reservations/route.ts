@@ -75,34 +75,60 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Ten termin jest już zajęty' }, { status: 409 })
     }
 
-    // Waliduj i zużyj kod zniżkowy (jeśli podany)
+    // Waliduj i zużyj kod zniżkowy (jeśli podany) - kody rabatowe lub kody afiliacyjne
     let discountInfo: string | null = null
+    let affiliatePromoCodeId: string | null = null
+    let discountCodeId: string | null = null
     if (data.discount_code) {
       const normalizedCode = data.discount_code.toUpperCase().trim()
-      const { data: dc } = await supabase
-        .from('discount_codes')
-        .select('*')
-        .eq('code', normalizedCode)
-        .single()
 
-      if (!dc || !dc.active) {
+      const [{ data: dc }, { data: promo }] = await Promise.all([
+        supabase
+          .from('discount_codes')
+          .select('*')
+          .eq('code', normalizedCode)
+          .maybeSingle(),
+        supabase
+          .from('affiliate_promo_codes')
+          .select('id, code, status, client_discount_rate, usage_count')
+          .eq('code', normalizedCode)
+          .maybeSingle(),
+      ])
+
+      if (dc) {
+        if (!dc.active) {
+          return NextResponse.json({ error: 'Nieprawidłowy lub nieaktywny kod zniżkowy' }, { status: 400 })
+        }
+        if (dc.expires_at && new Date(dc.expires_at) < new Date()) {
+          return NextResponse.json({ error: 'Kod zniżkowy wygasł' }, { status: 400 })
+        }
+        if (dc.max_uses !== null && dc.used_count >= dc.max_uses) {
+          return NextResponse.json({ error: 'Kod zniżkowy został już w pełni wykorzystany' }, { status: 400 })
+        }
+        // Zużyj jedno użycie
+        await supabase
+          .from('discount_codes')
+          .update({ used_count: dc.used_count + 1 })
+          .eq('id', dc.id)
+
+        discountCodeId = dc.id
+        discountInfo = dc.discount_type === 'percent'
+          ? `ZNIŻKA ${dc.discount_value}% (${normalizedCode})`
+          : `ZNIŻKA ${dc.discount_value} zł (${normalizedCode})`
+      } else if (promo) {
+        if (promo.status !== 'active') {
+          return NextResponse.json({ error: 'Nieprawidłowy lub nieaktywny kod zniżkowy' }, { status: 400 })
+        }
+        await supabase
+          .from('affiliate_promo_codes')
+          .update({ usage_count: (promo.usage_count ?? 0) + 1 })
+          .eq('id', promo.id)
+
+        affiliatePromoCodeId = promo.id
+        discountInfo = `ZNIŻKA ${promo.client_discount_rate}% (${normalizedCode})`
+      } else {
         return NextResponse.json({ error: 'Nieprawidłowy lub nieaktywny kod zniżkowy' }, { status: 400 })
       }
-      if (dc.expires_at && new Date(dc.expires_at) < new Date()) {
-        return NextResponse.json({ error: 'Kod zniżkowy wygasł' }, { status: 400 })
-      }
-      if (dc.max_uses !== null && dc.used_count >= dc.max_uses) {
-        return NextResponse.json({ error: 'Kod zniżkowy został już w pełni wykorzystany' }, { status: 400 })
-      }
-      // Zużyj jedno użycie
-      await supabase
-        .from('discount_codes')
-        .update({ used_count: dc.used_count + 1 })
-        .eq('id', dc.id)
-
-      discountInfo = dc.discount_type === 'percent'
-        ? `ZNIŻKA ${dc.discount_value}% (${normalizedCode})`
-        : `ZNIŻKA ${dc.discount_value} zł (${normalizedCode})`
     }
 
     // Utwórz rezerwację (bez pól tylko-metadanych)
@@ -114,6 +140,8 @@ export async function POST(req: NextRequest) {
     const insertData = {
       ...reservationData,
       ...(discountInfo ? { notes: discountInfo } : {}),
+      ...(affiliatePromoCodeId ? { affiliate_promo_code_id: affiliatePromoCodeId } : {}),
+      ...(discountCodeId ? { discount_code_id: discountCodeId } : {}),
     }
 
     const { data: reservation, error: resErr } = await supabase
