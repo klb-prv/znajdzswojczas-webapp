@@ -3,8 +3,7 @@ import { rateLimit } from '@/lib/rate-limit'
 import { z } from 'zod'
 import { createAdminClient } from '@/lib/supabase/server'
 import { getAffiliateContext } from '@/lib/affiliate-auth'
-
-export const SELF_CODE_DISCOUNT_PERCENT = 15
+import { codeDiscountPercent } from '@/lib/demo-mode'
 
 const schema = z.object({
   code: z
@@ -79,7 +78,7 @@ export async function POST(req: NextRequest) {
       .insert({
         affiliate_id: affiliate.id,
         code,
-        client_discount_rate: SELF_CODE_DISCOUNT_PERCENT,
+        client_discount_rate: codeDiscountPercent(affiliate.login),
         affiliate_commission_rate: affiliateRow.commission_percent,
         status: 'active',
         usage_count: 0,

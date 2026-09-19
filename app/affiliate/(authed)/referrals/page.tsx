@@ -4,8 +4,8 @@ import { format } from 'date-fns'
 import { pl } from 'date-fns/locale'
 
 const STATUS_MAP: Record<string, { label: string; color: string }> = {
-  pending:   { label: 'Oczekuje',    color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-600 dark:text-amber-400' },
-  approved:  { label: 'Zatwierdzona', color: 'bg-green-100 text-green-700 dark:bg-emerald-900/30 dark:text-green-600 dark:text-emerald-400' },
+  pending:   { label: 'Oczekuje',    color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' },
+  approved:  { label: 'Zatwierdzona', color: 'bg-green-100 text-green-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
   rejected:  { label: 'Odrzucona',    color: 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' },
   paid:      { label: 'Wypłacono',    color: 'bg-violet-100 text-violet-700 dark:bg-[#7C5CFC]/15 dark:text-[#9277FF]' },
 }

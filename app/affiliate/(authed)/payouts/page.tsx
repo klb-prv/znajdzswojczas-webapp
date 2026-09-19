@@ -1,12 +1,13 @@
 import { createAdminClient } from '@/lib/supabase/server'
 import { requireAffiliateContext } from '@/lib/affiliate-auth'
+import { isDemoAffiliate } from '@/lib/demo-mode'
 import { format } from 'date-fns'
 import { pl } from 'date-fns/locale'
 import AffiliatePayoutButton from '@/components/AffiliatePayoutButton'
 
 const PAYOUT_STATUS: Record<string, { label: string; color: string }> = {
-  pending:  { label: 'Oczekuje',   color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-600 dark:text-amber-400' },
-  approved: { label: 'Zaakceptowana', color: 'bg-green-100 text-green-700 dark:bg-emerald-900/30 dark:text-green-600 dark:text-emerald-400' },
+  pending:  { label: 'Oczekuje',   color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' },
+  approved: { label: 'Zaakceptowana', color: 'bg-green-100 text-green-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
   paid:     { label: 'Wypłacona',  color: 'bg-violet-100 text-violet-700 dark:bg-[#7C5CFC]/15 dark:text-[#9277FF]' },
   rejected: { label: 'Odrzucona',  color: 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' },
 }
@@ -55,7 +56,7 @@ export default async function AffiliatePayoutsPage() {
         <p className="text-[10px] text-gray-400 dark:text-[#555] mt-2">Minimalna kwota wypłaty: 10 zł</p>
 
         <div className="mt-6">
-          <AffiliatePayoutButton available={available} />
+          <AffiliatePayoutButton available={available} demo={isDemoAffiliate(affiliate.login)} />
         </div>
       </div>
 

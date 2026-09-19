@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createAdminClient } from '@/lib/supabase/server'
 import { verifyAffiliateSession, AFFILIATE_SESSION_COOKIE } from '@/lib/affiliate-session'
+import { isDemoAffiliate } from '@/lib/demo-mode'
 import { z } from 'zod'
 
 const schema = z.object({
@@ -24,6 +25,17 @@ export async function POST(req: NextRequest) {
     }
 
     const supabase = createAdminClient()
+
+    // Tryb demo (konto "demo") nie może zlecać wypłat - blokada po stronie serwera
+    const { data: affRow } = await supabase
+      .from('affiliates')
+      .select('login')
+      .eq('id', affiliateId)
+      .maybeSingle()
+
+    if (isDemoAffiliate(affRow?.login)) {
+      return NextResponse.json({ error: 'Tryb demo nie może zlecać wypłat' }, { status: 403 })
+    }
 
     const [commissionsRes, existingPayoutsRes] = await Promise.all([
       supabase

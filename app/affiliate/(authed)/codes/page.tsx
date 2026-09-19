@@ -1,8 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/server'
 import { requireAffiliateContext } from '@/lib/affiliate-auth'
+import { codeDiscountPercent } from '@/lib/demo-mode'
 import AffiliateCodesClient, { type PromoCodeItem, type DiscountAssignmentItem } from '@/components/AffiliateCodesClient'
-
-export const SELF_CODE_DISCOUNT_PERCENT = 15
 
 export default async function AffiliateCodesPage() {
   const affiliate = await requireAffiliateContext()
@@ -64,7 +63,7 @@ export default async function AffiliateCodesPage() {
       selfCode={selfCode}
       adminPromoCodes={adminPromoCodes}
       discountAssignments={discountAssignments}
-      selfCodeDiscountPercent={SELF_CODE_DISCOUNT_PERCENT}
+      selfCodeDiscountPercent={codeDiscountPercent(affiliate.login)}
     />
   )
 }

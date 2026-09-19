@@ -4,9 +4,10 @@ import { useState } from 'react'
 
 interface Props {
   available: number
+  demo?: boolean
 }
 
-export default function AffiliatePayoutButton({ available }: Props) {
+export default function AffiliatePayoutButton({ available, demo = false }: Props) {
   const [show, setShow] = useState(false)
   const [amount, setAmount] = useState('')
   const [loading, setLoading] = useState(false)
@@ -14,7 +15,7 @@ export default function AffiliatePayoutButton({ available }: Props) {
   const [success, setSuccess] = useState(false)
 
   const minPayout = 10
-  const canRequest = available >= minPayout
+  const canRequest = available >= minPayout && !demo
 
   const handleSubmit = async () => {
     const parsed = parseFloat(amount.replace(',', '.'))
@@ -49,10 +50,15 @@ export default function AffiliatePayoutButton({ available }: Props) {
       <button
         onClick={() => { setAmount(minPayout.toString()); setError(''); setSuccess(false); setShow(true) }}
         disabled={!canRequest}
+        title={demo ? 'Tryb demo: zlecanie wypłat jest wyłączone' : undefined}
         className="px-6 py-3 bg-violet-600 hover:bg-violet-700 dark:bg-[#7C5CFC] dark:hover:bg-[#9277FF] text-white rounded-xl text-sm font-semibold transition disabled:opacity-40 disabled:cursor-not-allowed"
       >
         💸 Zleć wypłatę
       </button>
+
+      {demo && (
+        <p className="text-[11px] text-gray-400 dark:text-[#555] mt-2">🧪 Tryb demo — zlecanie wypłat jest wyłączone.</p>
+      )}
 
       {success && (
         <p className="text-sm text-green-600 dark:text-emerald-400 mt-3">Wypłata została zlecona. Oczekuj na realizację.</p>
