@@ -40,6 +40,7 @@ create table if not exists affiliates (
   referral_code text not null unique,
   commission_percent integer not null default 3 check (commission_percent > 0 and commission_percent <= 100),
   active boolean not null default true,
+  email text,
   created_at timestamptz not null default now()
 );
 
@@ -100,6 +101,10 @@ create table if not exists affiliate_discount_code_assignments (
 );
 
 -- ─── Kolumny doklejane do już istniejących tabel ───
+
+-- 0. Email partnera (wymagany przy tworzeniu - wysyłka zaproszenia)
+alter table affiliates
+  add column if not exists email text;
 
 -- 1. Kto utworzył kod promocyjny: 'admin' czy 'affiliate' (limit 1 własnego kodu 15%)
 alter table affiliate_promo_codes

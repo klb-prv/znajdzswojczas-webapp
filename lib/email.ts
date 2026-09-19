@@ -287,3 +287,45 @@ export async function sendInProgressEmail(
     `,
   })
 }
+
+export async function sendAffiliateWelcomeEmail(
+  to: string,
+  name: string,
+  login: string,
+  password: string
+) {
+  const base = process.env.NEXT_PUBLIC_APP_URL ?? 'https://znajdzswojczas.pl'
+  const panelLink = `${base}/affiliate`
+
+  await resend.emails.send({
+    from: process.env.EMAIL_FROM ?? 'onboarding@resend.dev',
+    to,
+    subject: 'Zaproszenie do programu partnerskiego znajdzswojczas.pl',
+    html: `
+      <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
+        <h2>Cześć ${name}, miło Cię widzieć w naszej drużynie! 🤝</h2>
+        <p>
+          Mamy ogromny zaszczyt zaprosić Cię do naszego programu partnerskiego,
+          gdzie Ty jak i Twoi Widzowie zyskacie same korzyści.
+        </p>
+        <p><strong>Przekazujemy dane do logowania:</strong></p>
+        <div style="background:#f4f4f4;border-radius:8px;padding:16px;margin:20px 0;font-family:monospace;font-size:14px">
+          <p style="margin:0 0 8px 0">Login: <strong>${login}</strong></p>
+          <p style="margin:0">Hasło: <strong>${password}</strong></p>
+        </div>
+        <p>
+          Link do panelu:
+          <a href="${panelLink}" style="color:#2563eb;font-weight:600">${panelLink}</a>
+        </p>
+        <p style="margin-top:32px">Pozdrawiamy<br/><strong>Administracja znajdzswojczas.pl</strong></p>
+        <hr style="border:none;border-top:1px solid #eee;margin:24px 0"/>
+        <p style="text-align:center;margin:0">
+          <a href="${base}/regulamin/partnerzy" style="color:#6b7280;font-size:11px;text-decoration:none;margin:0 8px">Regulamin dla partnerów</a>
+          <span style="color:#d1d5db;font-size:11px">|</span>
+          <a href="${base}/regulamin" style="color:#6b7280;font-size:11px;text-decoration:none;margin:0 8px">Regulamin serwisu</a>
+        </p>
+        <p style="color:#aaa;font-size:11px;text-align:center;margin:8px 0 0 0">Prosimy nie odpowiadać na tę wiadomość.<br/>znajdzswojczas.pl</p>
+      </div>
+    `,
+  })
+}

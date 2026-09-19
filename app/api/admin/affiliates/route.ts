@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { after, NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
+import { sendAffiliateWelcomeEmail } from '@/lib/email'
 import { z } from 'zod'
 
 const createSchema = z.object({
@@ -8,6 +9,8 @@ const createSchema = z.object({
   login: z.string().min(1),
   password_hash: z.string().min(1),
   referral_code: z.string().min(1),
+  email: z.string().email('Podaj poprawny adres email'),
+  password: z.string().optional(),
 })
 
 const patchSchema = z.discriminatedUnion('action', [
@@ -40,6 +43,7 @@ export async function POST(req: NextRequest) {
         login: body.login,
         password_hash: body.password_hash,
         referral_code: body.referral_code,
+        email: body.email.toLowerCase().trim(),
         commission_percent: 10,
         active: true,
       })
@@ -48,6 +52,17 @@ export async function POST(req: NextRequest) {
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    // Mail powitalny z danymi do logowania - wysyłany po odpowiedzi, nie blokuje tworzenia
+    if (body.password) {
+      const email = body.email.toLowerCase().trim()
+      const { name, login, password } = body
+      after(async () => {
+        try {
+          await sendAffiliateWelcomeEmail(email, name, login, password)
+        } catch {}
+      })
     }
 
     return NextResponse.json({ ok: true, id: data.id })

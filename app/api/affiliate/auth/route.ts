@@ -1,20 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
 import { createAffiliateSession, AFFILIATE_SESSION_COOKIE } from '@/lib/affiliate-session'
+import { hashPassword } from '@/lib/password'
 import { z } from 'zod'
 
 const schema = z.object({
   login: z.string().min(1),
   password: z.string().min(1),
 })
-
-async function hashPassword(password: string): Promise<string> {
-  const encoder = new TextEncoder()
-  const data = encoder.encode(password)
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
-  const hashArray = Array.from(new Uint8Array(hashBuffer))
-  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('')
-}
 
 export async function POST(req: NextRequest) {
   try {

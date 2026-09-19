@@ -64,6 +64,7 @@ export default function AdminAffiliatesManager({ affiliates, referralCounts }: P
   const router = useRouter()
   const [showAddModal, setShowAddModal] = useState(false)
   const [newName, setNewName] = useState('')
+  const [newEmail, setNewEmail] = useState('')
   const [addLoading, setAddLoading] = useState(false)
   const [addError, setAddError] = useState('')
 
@@ -88,7 +89,7 @@ export default function AdminAffiliatesManager({ affiliates, referralCounts }: P
   const [statusLoading, setStatusLoading] = useState(false)
 
   const handleAdd = async () => {
-    if (!newName.trim()) return
+    if (!newName.trim() || !newEmail.trim()) return
     setAddLoading(true)
     setAddError('')
     try {
@@ -106,6 +107,8 @@ export default function AdminAffiliatesManager({ affiliates, referralCounts }: P
           login,
           password_hash: passwordHash,
           referral_code: referralCode,
+          email: newEmail.trim(),
+          password,
         }),
       })
       const data = await res.json()
@@ -117,6 +120,7 @@ export default function AdminAffiliatesManager({ affiliates, referralCounts }: P
       setShowAddModal(false)
       setShowSuccessModal(true)
       setNewName('')
+      setNewEmail('')
       router.refresh()
     } catch {
       setAddError('Błąd połączenia')
@@ -360,12 +364,23 @@ export default function AdminAffiliatesManager({ affiliates, referralCounts }: P
                 autoFocus
               />
             </div>
+            <div className="mb-4">
+              <label className="block text-xs text-gray-500 mb-1">Adres email <span className="text-red-500">*</span></label>
+              <input
+                type="email"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                placeholder="np. partner@domena.pl"
+                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <p className="text-[10px] text-gray-400 mt-1">Na ten adres wysłamy zaproszenie z danymi do logowania.</p>
+            </div>
             {addError && <p className="text-sm text-red-500 bg-red-50 rounded-xl px-3 py-2 text-center mb-4">{addError}</p>}
             <div className="flex gap-3">
               <button onClick={() => setShowAddModal(false)} className="flex-1 border border-gray-200 text-gray-600 rounded-xl py-2.5 text-sm hover:bg-gray-50 transition">
                 Anuluj
               </button>
-              <button onClick={handleAdd} disabled={addLoading || !newName.trim()} className="flex-1 bg-blue-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 transition">
+              <button onClick={handleAdd} disabled={addLoading || !newName.trim() || !newEmail.trim()} className="flex-1 bg-blue-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 transition">
                 {addLoading ? 'Tworzenie…' : 'Utwórz partnera'}
               </button>
             </div>

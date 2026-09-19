@@ -13,6 +13,7 @@ interface Affiliate {
   referral_code: string
   commission_percent: number
   active: boolean
+  email?: string | null
   created_at: string
 }
 
@@ -383,6 +384,7 @@ export default function AdminAffiliateDetail({ affiliate, stats, referrals, payo
             ['Nazwa', affiliate.name],
             ['ID', affiliate.id],
             ['Login', affiliate.login],
+            ['Email', affiliate.email || '—'],
             ['Kod afiliacyjny', affiliate.referral_code],
             ['Prowizja', `${affiliate.commission_percent}%`],
             ['Status', affiliate.active ? '🟢 Aktywny' : '🔴 Zablokowany'],

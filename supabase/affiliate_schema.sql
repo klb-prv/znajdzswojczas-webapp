@@ -9,6 +9,7 @@ create table affiliates (
   referral_code text not null unique,
   commission_percent integer not null default 3 check (commission_percent > 0 and commission_percent <= 100),
   active boolean not null default true,
+  email text,
   created_at timestamptz not null default now()
 );
 
