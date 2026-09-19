@@ -41,7 +41,7 @@ export default async function AffiliateReferralsPage() {
               const s = STATUS_MAP[r.status] ?? STATUS_MAP.pending
               const date = format(new Date(r.created_at), 'd.MM.yyyy', { locale: pl })
               return (
-                <tr key={r.id} className="border-b border-gray-100 dark:border-[#1a1a20] hover:bg-gray-100 dark:bg-[#15151A] transition">
+                <tr key={r.id} className="border-b border-gray-100 dark:border-[#1a1a20] hover:bg-gray-100 dark:hover:bg-[#15151A] transition">
                   <td className="px-4 py-3 text-gray-600 dark:text-[#9A9AA3]">{date}</td>
                   <td className="px-4 py-3 text-gray-900 dark:text-[#F5F5F7] font-medium">{r.client_label}</td>
                   <td className="px-4 py-3 text-gray-600 dark:text-[#9A9AA3]">{r.service_name}</td>

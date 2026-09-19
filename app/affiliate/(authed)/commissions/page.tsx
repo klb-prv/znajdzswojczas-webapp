@@ -46,7 +46,7 @@ export default async function AffiliateCommissionsPage() {
               const s = STATUS[c.status] ?? STATUS.pending
               const date = format(new Date(c.created_at), 'd.MM.yyyy', { locale: pl })
               return (
-                <tr key={c.id} className="border-b border-gray-100 dark:border-[#1a1a20] hover:bg-gray-100 dark:bg-[#15151A] transition">
+                <tr key={c.id} className="border-b border-gray-100 dark:border-[#1a1a20] hover:bg-gray-100 dark:hover:bg-[#15151A] transition">
                   <td className="px-4 py-3 text-gray-600 dark:text-[#9A9AA3]">{date}</td>
                   <td className="px-4 py-3 text-gray-900 dark:text-[#F5F5F7] font-mono text-xs">{c.promo_code ?? '—'}</td>
                   <td className="px-4 py-3 text-gray-600 dark:text-[#9A9AA3]">{c.order_id ?? c.service_name ?? '—'}</td>

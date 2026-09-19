@@ -95,7 +95,7 @@ export default function AffiliatePayoutButton({ available }: Props) {
             <div className="flex gap-3">
               <button
                 onClick={() => setShow(false)}
-                className="flex-1 border border-gray-200 dark:border-[#25252D] text-gray-600 dark:text-[#9A9AA3] rounded-xl py-2.5 text-sm hover:bg-gray-100 dark:bg-[#15151A] transition"
+                className="flex-1 border border-gray-200 dark:border-[#25252D] text-gray-600 dark:text-[#9A9AA3] rounded-xl py-2.5 text-sm hover:bg-gray-100 dark:hover:bg-[#15151A] transition"
               >
                 Anuluj
               </button>
