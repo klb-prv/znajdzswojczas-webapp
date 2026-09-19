@@ -119,6 +119,9 @@ export default function AdminAffiliateDetail({ affiliate, stats, referrals, payo
 
   const [actionLoading, setActionLoading] = useState<string | null>(null)
 
+  const [archiveConfirm, setArchiveConfirm] = useState<PromoCode | null>(null)
+  const [archiveLoading, setArchiveLoading] = useState(false)
+
   const [showAssignDiscountModal, setShowAssignDiscountModal] = useState(false)
   const [assignDiscountCodeId, setAssignDiscountCodeId] = useState('')
   const [assignCommissionRate, setAssignCommissionRate] = useState(3)
@@ -189,13 +192,33 @@ export default function AdminAffiliateDetail({ affiliate, stats, referrals, payo
     }
   }
 
-  const handleArchive = async (id: string) => {
+  const handleArchive = (pc: PromoCode) => {
+    setArchiveConfirm(pc)
+  }
+
+  const confirmArchive = async () => {
+    if (!archiveConfirm) return
+    setArchiveLoading(true)
+    try {
+      await fetch('/api/admin/affiliate-promo-codes', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'archive', id: archiveConfirm.id }),
+      })
+      setArchiveConfirm(null)
+      router.refresh()
+    } catch {} finally {
+      setArchiveLoading(false)
+    }
+  }
+
+  const handleUnarchive = async (id: string) => {
     setActionLoading(id)
     try {
       await fetch('/api/admin/affiliate-promo-codes', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'archive', id }),
+        body: JSON.stringify({ action: 'unarchive', id }),
       })
       router.refresh()
     } catch {} finally {
@@ -238,6 +261,49 @@ export default function AdminAffiliateDetail({ affiliate, stats, referrals, payo
 
   const partnerCodes = promoCodes.filter((p) => p.created_by === 'affiliate')
   const adminCodes = promoCodes.filter((p) => p.created_by !== 'affiliate')
+
+  const renderCodeActions = (pc: PromoCode, editLabel: string) => {
+    if (pc.status === 'archived') {
+      return (
+        <button
+          onClick={() => handleUnarchive(pc.id)}
+          disabled={actionLoading === pc.id}
+          className="text-xs px-2 py-0.5 rounded-lg border border-emerald-200 text-emerald-600 hover:bg-emerald-50 transition font-medium"
+        >
+          ♻️ Przywróć
+        </button>
+      )
+    }
+    return (
+      <>
+        <button
+          onClick={() => openEditRate(pc)}
+          className="text-xs px-2 py-0.5 rounded-lg border border-indigo-200 text-indigo-600 hover:bg-indigo-50 transition font-medium"
+        >
+          {editLabel}
+        </button>
+        <button
+          onClick={() => handleToggleStatus(pc.id)}
+          disabled={actionLoading === pc.id}
+          className={`text-xs px-2 py-0.5 rounded-lg border font-medium transition ${
+            pc.status === 'active'
+              ? 'border-amber-200 text-amber-600 hover:bg-amber-50'
+              : 'border-green-200 text-green-600 hover:bg-green-50'
+          }`}
+        >
+          {pc.status === 'active' ? 'Wyłącz' : 'Włącz'}
+        </button>
+        <button
+          onClick={() => handleArchive(pc)}
+          disabled={actionLoading === pc.id}
+          title="Archiwizuj"
+          className="text-xs px-2 py-0.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition font-medium"
+        >
+          📦
+        </button>
+      </>
+    )
+  }
 
   const handleAssignDiscount = async () => {
     if (!assignDiscountCodeId) return
@@ -411,36 +477,7 @@ export default function AdminAffiliateDetail({ affiliate, stats, referrals, payo
                       </td>
                       <td className="px-3 py-2.5 text-gray-500">{pc.usage_count}</td>
                       <td className="px-3 py-2.5">
-                        <div className="flex flex-wrap gap-1.5">
-                          {pc.status !== 'archived' && (
-                            <>
-                              <button
-                                onClick={() => openEditRate(pc)}
-                                className="text-xs px-2 py-0.5 rounded-lg border border-indigo-200 text-indigo-600 hover:bg-indigo-50 transition font-medium"
-                              >
-                                Edytuj
-                              </button>
-                              <button
-                                onClick={() => handleToggleStatus(pc.id)}
-                                disabled={actionLoading === pc.id}
-                                className={`text-xs px-2 py-0.5 rounded-lg border font-medium transition ${
-                                  pc.status === 'active'
-                                    ? 'border-amber-200 text-amber-600 hover:bg-amber-50'
-                                    : 'border-green-200 text-green-600 hover:bg-green-50'
-                                }`}
-                              >
-                                {pc.status === 'active' ? 'Wyłącz' : 'Włącz'}
-                              </button>
-                              <button
-                                onClick={() => handleArchive(pc.id)}
-                                disabled={actionLoading === pc.id}
-                                className="text-xs px-2 py-0.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition font-medium"
-                              >
-                                📦
-                              </button>
-                            </>
-                          )}
-                        </div>
+                        <div className="flex flex-wrap gap-1.5">{renderCodeActions(pc, 'Edytuj')}</div>
                       </td>
                     </tr>
                   )
@@ -492,36 +529,7 @@ export default function AdminAffiliateDetail({ affiliate, stats, referrals, payo
                         </td>
                         <td className="px-3 py-2.5 text-gray-500">{pc.usage_count}</td>
                         <td className="px-3 py-2.5">
-                          <div className="flex flex-wrap gap-1.5">
-                            {pc.status !== 'archived' && (
-                              <>
-                                <button
-                                  onClick={() => openEditRate(pc)}
-                                  className="text-xs px-2 py-0.5 rounded-lg border border-indigo-200 text-indigo-600 hover:bg-indigo-50 transition font-medium"
-                                >
-                                  Edytuj prowizję
-                                </button>
-                                <button
-                                  onClick={() => handleToggleStatus(pc.id)}
-                                  disabled={actionLoading === pc.id}
-                                  className={`text-xs px-2 py-0.5 rounded-lg border font-medium transition ${
-                                    pc.status === 'active'
-                                      ? 'border-amber-200 text-amber-600 hover:bg-amber-50'
-                                      : 'border-green-200 text-green-600 hover:bg-green-50'
-                                  }`}
-                                >
-                                  {pc.status === 'active' ? 'Wyłącz' : 'Włącz'}
-                                </button>
-                                <button
-                                  onClick={() => handleArchive(pc.id)}
-                                  disabled={actionLoading === pc.id}
-                                  className="text-xs px-2 py-0.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition font-medium"
-                                >
-                                  📦
-                                </button>
-                              </>
-                            )}
-                          </div>
+                          <div className="flex flex-wrap gap-1.5">{renderCodeActions(pc, 'Edytuj prowizję')}</div>
                         </td>
                       </tr>
                     )
@@ -799,6 +807,31 @@ export default function AdminAffiliateDetail({ affiliate, stats, referrals, payo
                   {editRateLoading ? 'Zapisywanie…' : editRateIsPartner ? 'Potwierdź zmianę' : 'Zapisz'}
                 </button>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Archive confirmation modal */}
+      {archiveConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={(e) => { if (e.target === e.currentTarget) setArchiveConfirm(null) }}>
+          <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 w-full max-w-sm p-6">
+            <div className="text-center mb-5">
+              <div className="text-3xl mb-2">📦</div>
+              <h2 className="text-lg font-bold text-gray-900">Archiwizuj kod promocyjny</h2>
+            </div>
+            <p className="text-sm text-gray-500 text-center mb-4">
+              Czy na pewno chcesz archiwizować ten kod{' '}
+              <span className="font-mono font-semibold text-gray-700">{archiveConfirm.code}</span>?
+              Przestanie on działać dla nowych zleceń. Możesz go przywrócić przyciskiem „Przywróć".
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => setArchiveConfirm(null)} className="flex-1 border border-gray-200 text-gray-600 rounded-xl py-2.5 text-sm hover:bg-gray-50 transition">
+                Anuluj
+              </button>
+              <button onClick={confirmArchive} disabled={archiveLoading} className="flex-1 bg-gray-800 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-gray-900 disabled:opacity-50 transition">
+                {archiveLoading ? 'Archiwizowanie…' : 'Archiwizuj'}
+              </button>
             </div>
           </div>
         </div>

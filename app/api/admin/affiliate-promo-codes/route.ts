@@ -18,6 +18,7 @@ const patchSchema = z.discriminatedUnion('action', [
     affiliate_commission_rate: z.number().int().min(1).max(100),
   }),
   z.object({ action: z.literal('archive'), id: z.string() }),
+  z.object({ action: z.literal('unarchive'), id: z.string() }),
 ])
 
 export async function POST(req: NextRequest) {
@@ -110,7 +111,15 @@ export async function PATCH(req: NextRequest) {
           .update({ status: 'archived' })
           .eq('id', body.id)
         if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-        break
+        break;
+      }
+      case 'unarchive': {
+        const { error } = await supabase
+          .from('affiliate_promo_codes')
+          .update({ status: 'active' })
+          .eq('id', body.id)
+        if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+        break;
       }
     }
 

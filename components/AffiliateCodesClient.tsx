@@ -77,7 +77,7 @@ function PromoCodeCard({ item, badge, onEdit }: { item: PromoCodeItem; badge?: R
               onClick={onEdit}
               className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200 dark:bg-[#15151A] dark:text-[#9A9AA3] dark:border-[#25252D] dark:hover:bg-[#1c1c22] transition whitespace-nowrap"
             >
-              ✏️ Zmień kod
+              ✏️ Edytuj
             </button>
           )}
           <CopyCodeButton code={item.code} />
