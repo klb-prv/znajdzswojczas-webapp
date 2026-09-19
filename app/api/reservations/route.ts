@@ -2,6 +2,7 @@ import { after, NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createAdminClient } from '@/lib/supabase/server'
 import { sendVerificationEmail } from '@/lib/email'
+import { createPendingCommissionForReservation } from '@/lib/affiliate-commissions'
 import { format } from 'date-fns'
 import { pl } from 'date-fns/locale'
 
@@ -169,12 +170,16 @@ export async function POST(req: NextRequest) {
       }),
     ])
 
-    // Email wysyłany po zwróceniu odpowiedzi - klient nie czeka na Resend
+    // Email + prowizja pending wysyłane po zwróceniu odpowiedzi - klient nie czeka
     const formattedDate = format(new Date(data.date), 'd MMMM yyyy', { locale: pl })
     const discordNick = data.contact_method === 'discord' && data.discord_nick?.trim()
       ? data.discord_nick.trim()
       : undefined
+    const usedAffiliateCode = Boolean(affiliatePromoCodeId || discountCodeId)
     after(async () => {
+      try {
+        if (usedAffiliateCode) await createPendingCommissionForReservation(reservation.id)
+      } catch {}
       try {
         await sendVerificationEmail(data.email, data.name, code, reservation.id, formattedDate, discordNick)
       } catch {}

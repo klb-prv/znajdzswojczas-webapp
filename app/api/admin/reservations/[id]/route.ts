@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createAdminClient } from '@/lib/supabase/server'
 import { sendCancellationEmail, sendRescheduleEmail, sendCategoryChangeEmail, sendCompletionEmail, sendInProgressEmail, sendPaymentConfirmedEmail } from '@/lib/email'
-import { recordAffiliateCommissionForReservation } from '@/lib/affiliate-commissions'
+import { finalizeCommissionForPaidReservation, cancelPendingCommissionsForReservation } from '@/lib/affiliate-commissions'
 import { format } from 'date-fns'
 import { pl } from 'date-fns/locale'
 
@@ -77,6 +77,8 @@ export async function PATCH(
         .from('reservations')
         .update({ status: 'cancelled', cancel_reason: data.reason })
         .eq('id', id)
+
+      await cancelPendingCommissionsForReservation(id)
 
       await sendCancellationEmail(reservation.email, reservation.name, oldDate, data.reason)
       return NextResponse.json({ success: true })
@@ -199,7 +201,7 @@ export async function PATCH(
         .update({ status: 'paid' })
         .eq('id', id)
 
-      await recordAffiliateCommissionForReservation(id)
+      await finalizeCommissionForPaidReservation(id)
 
       const formattedDate = format(new Date(reservation.date), 'd MMMM yyyy', { locale: pl })
       await sendPaymentConfirmedEmail(
