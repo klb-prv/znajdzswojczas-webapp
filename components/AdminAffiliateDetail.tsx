@@ -49,6 +49,7 @@ interface PromoCode {
   affiliate_commission_rate: number
   status: string
   usage_count: number
+  created_by?: string
 }
 
 interface DiscountCodeAssignment {
@@ -93,6 +94,7 @@ const PROMO_STATUS: Record<string, { label: string; color: string }> = {
 }
 
 const RATE_OPTIONS = [3, 5, 10]
+const PARTNER_RATE_OPTIONS = [3, 5, 8, 10]
 
 export default function AdminAffiliateDetail({ affiliate, stats, referrals, payouts, promoCodes, discountCodeAssignments, availableDiscountCodes }: Props) {
   const router = useRouter()
@@ -107,6 +109,10 @@ export default function AdminAffiliateDetail({ affiliate, stats, referrals, payo
 
   const [showEditRateModal, setShowEditRateModal] = useState(false)
   const [editRateId, setEditRateId] = useState('')
+  const [editRateCodeName, setEditRateCodeName] = useState('')
+  const [editRateIsPartner, setEditRateIsPartner] = useState(false)
+  const [editRateConfirm, setEditRateConfirm] = useState(false)
+  const [editRateOriginalCommission, setEditRateOriginalCommission] = useState(3)
   const [editDiscountRate, setEditDiscountRate] = useState(3)
   const [editCommissionRate, setEditCommissionRate] = useState(3)
   const [editRateLoading, setEditRateLoading] = useState(false)
@@ -211,11 +217,27 @@ export default function AdminAffiliateDetail({ affiliate, stats, referrals, payo
         }),
       })
       setShowEditRateModal(false)
+      setEditRateConfirm(false)
       router.refresh()
     } catch {} finally {
       setEditRateLoading(false)
     }
   }
+
+  const openEditRate = (pc: PromoCode) => {
+    const isPartner = pc.created_by === 'affiliate'
+    setEditRateId(pc.id)
+    setEditRateCodeName(pc.code)
+    setEditRateIsPartner(isPartner)
+    setEditRateConfirm(false)
+    setEditRateOriginalCommission(pc.affiliate_commission_rate)
+    setEditDiscountRate(pc.client_discount_rate)
+    setEditCommissionRate(pc.affiliate_commission_rate)
+    setShowEditRateModal(true)
+  }
+
+  const partnerCodes = promoCodes.filter((p) => p.created_by === 'affiliate')
+  const adminCodes = promoCodes.filter((p) => p.created_by !== 'affiliate')
 
   const handleAssignDiscount = async () => {
     if (!assignDiscountCodeId) return
@@ -351,10 +373,10 @@ export default function AdminAffiliateDetail({ affiliate, stats, referrals, payo
         </div>
       </div>
 
-      {/* Promo codes */}
+      {/* Promo codes - created by admin */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold text-gray-700">🎟️ Kody promocyjne</h2>
+          <h2 className="font-semibold text-gray-700">🎟️ Kody promocyjne (administratora)</h2>
           <button
             onClick={() => { setNewCode(''); setNewDiscountRate(3); setNewCommissionRate(3); setAddPromoError(''); setShowAddPromoModal(true) }}
             className="text-xs px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition font-medium"
@@ -362,7 +384,7 @@ export default function AdminAffiliateDetail({ affiliate, stats, referrals, payo
             + Dodaj kod
           </button>
         </div>
-        {promoCodes.length > 0 ? (
+        {adminCodes.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -375,7 +397,7 @@ export default function AdminAffiliateDetail({ affiliate, stats, referrals, payo
                 </tr>
               </thead>
               <tbody>
-                {promoCodes.map((pc) => {
+                {adminCodes.map((pc) => {
                   const s = PROMO_STATUS[pc.status] ?? PROMO_STATUS.inactive
                   return (
                     <tr key={pc.id} className="border-b border-gray-50">
@@ -393,7 +415,7 @@ export default function AdminAffiliateDetail({ affiliate, stats, referrals, payo
                           {pc.status !== 'archived' && (
                             <>
                               <button
-                                onClick={() => { setEditRateId(pc.id); setEditDiscountRate(pc.client_discount_rate); setEditCommissionRate(pc.affiliate_commission_rate); setShowEditRateModal(true) }}
+                                onClick={() => openEditRate(pc)}
                                 className="text-xs px-2 py-0.5 rounded-lg border border-indigo-200 text-indigo-600 hover:bg-indigo-50 transition font-medium"
                               >
                                 Edytuj
@@ -427,9 +449,89 @@ export default function AdminAffiliateDetail({ affiliate, stats, referrals, payo
             </table>
           </div>
         ) : (
-          <p className="text-sm text-gray-400 text-center py-4">Brak kodów promocyjnych</p>
+          <p className="text-sm text-gray-400 text-center py-4">Brak kodów promocyjnych utworzonych przez administratora</p>
         )}
       </div>
+
+      {/* Promo codes - created by partner (locked name + discount, commission editable with confirmation) */}
+      {partnerCodes.length > 0 && (
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <div className="flex items-center gap-2 mb-1">
+            <h2 className="font-semibold text-gray-700">🤝 Kody utworzone przez partnera</h2>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-violet-100 text-violet-700">kod partnera</span>
+          </div>
+          <p className="text-xs text-gray-400 mb-4">
+            Nazwa kodu i zniżka klienta są zablokowane. Prowizję można zmienić po potwierdzeniu w oknie edycji.
+          </p>
+          <div className="border-t border-dashed border-gray-200 pt-4">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100">
+                    {['Kod', 'Zniżka', 'Prowizja', 'Status', 'Użycia', 'Akcje'].map((h) => (
+                      <th key={h} className="text-left px-3 py-2 text-gray-500 font-medium text-xs">
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {partnerCodes.map((pc) => {
+                    const s = PROMO_STATUS[pc.status] ?? PROMO_STATUS.inactive
+                    return (
+                      <tr key={pc.id} className="border-b border-gray-50">
+                        <td className="px-3 py-2.5 font-mono font-medium text-gray-800">
+                          {pc.code} <span className="text-gray-300" title="Nazwa kodu zablokowana">🔒</span>
+                        </td>
+                        <td className="px-3 py-2.5 text-gray-600">{pc.client_discount_rate}% <span className="text-gray-300" title="Zniżka klienta zablokowana">🔒</span></td>
+                        <td className="px-3 py-2.5 text-gray-600">{pc.affiliate_commission_rate}%</td>
+                        <td className="px-3 py-2.5">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${s.color}`}>
+                            {s.label}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2.5 text-gray-500">{pc.usage_count}</td>
+                        <td className="px-3 py-2.5">
+                          <div className="flex flex-wrap gap-1.5">
+                            {pc.status !== 'archived' && (
+                              <>
+                                <button
+                                  onClick={() => openEditRate(pc)}
+                                  className="text-xs px-2 py-0.5 rounded-lg border border-indigo-200 text-indigo-600 hover:bg-indigo-50 transition font-medium"
+                                >
+                                  Edytuj prowizję
+                                </button>
+                                <button
+                                  onClick={() => handleToggleStatus(pc.id)}
+                                  disabled={actionLoading === pc.id}
+                                  className={`text-xs px-2 py-0.5 rounded-lg border font-medium transition ${
+                                    pc.status === 'active'
+                                      ? 'border-amber-200 text-amber-600 hover:bg-amber-50'
+                                      : 'border-green-200 text-green-600 hover:bg-green-50'
+                                  }`}
+                                >
+                                  {pc.status === 'active' ? 'Wyłącz' : 'Włącz'}
+                                </button>
+                                <button
+                                  onClick={() => handleArchive(pc.id)}
+                                  disabled={actionLoading === pc.id}
+                                  className="text-xs px-2 py-0.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition font-medium"
+                                >
+                                  📦
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Discount code assignments */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
@@ -618,37 +720,48 @@ export default function AdminAffiliateDetail({ affiliate, stats, referrals, payo
 
       {/* Edit rate modal */}
       {showEditRateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={(e) => { if (e.target === e.currentTarget) setShowEditRateModal(false) }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={(e) => { if (e.target === e.currentTarget) { setShowEditRateModal(false); setEditRateConfirm(false) } }}>
           <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 w-full max-w-sm p-6">
             <div className="text-center mb-5">
-              <div className="text-3xl mb-2">✏️</div>
-              <h2 className="text-lg font-bold text-gray-900">Edytuj stawki</h2>
+              <div className="text-3xl mb-2">{editRateIsPartner ? '🤝' : '✏️'}</div>
+              <h2 className="text-lg font-bold text-gray-900">
+                {editRateIsPartner ? 'Edytuj prowizję kodu partnera' : 'Edytuj stawki'}
+              </h2>
+              {editRateIsPartner && (
+                <p className="text-xs text-gray-400 mt-1">
+                  Kod <span className="font-mono font-medium text-gray-600">{editRateCodeName}</span> · zniżka klienta {editDiscountRate}% <span className="text-gray-300">🔒 zablokowana</span>
+                </p>
+              )}
             </div>
-            <div className="mb-4">
-              <label className="block text-xs text-gray-500 mb-1">Zniżka dla klienta</label>
-              <div className="flex gap-2">
-                {RATE_OPTIONS.map((r) => (
-                  <button
-                    key={`edit-disc-${r}`}
-                    onClick={() => setEditDiscountRate(r)}
-                    className={`flex-1 py-2 rounded-xl text-sm font-medium transition border ${
-                      editDiscountRate === r
-                        ? 'bg-indigo-600 text-white border-indigo-600'
-                        : 'border-gray-200 text-gray-600 hover:bg-gray-50'
-                    }`}
-                  >
-                    {r}%
-                  </button>
-                ))}
+
+            {!editRateIsPartner && (
+              <div className="mb-4">
+                <label className="block text-xs text-gray-500 mb-1">Zniżka dla klienta</label>
+                <div className="flex gap-2">
+                  {RATE_OPTIONS.map((r) => (
+                    <button
+                      key={`edit-disc-${r}`}
+                      onClick={() => setEditDiscountRate(r)}
+                      className={`flex-1 py-2 rounded-xl text-sm font-medium transition border ${
+                        editDiscountRate === r
+                          ? 'bg-indigo-600 text-white border-indigo-600'
+                          : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      {r}%
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
+
             <div className="mb-4">
               <label className="block text-xs text-gray-500 mb-1">Prowizja afiliacyjna</label>
               <div className="flex gap-2">
-                {RATE_OPTIONS.map((r) => (
+                {(editRateIsPartner ? PARTNER_RATE_OPTIONS : RATE_OPTIONS).map((r) => (
                   <button
                     key={`edit-comm-${r}`}
-                    onClick={() => setEditCommissionRate(r)}
+                    onClick={() => { setEditCommissionRate(r); setEditRateConfirm(false) }}
                     className={`flex-1 py-2 rounded-xl text-sm font-medium transition border ${
                       editCommissionRate === r
                         ? 'bg-indigo-600 text-white border-indigo-600'
@@ -660,13 +773,32 @@ export default function AdminAffiliateDetail({ affiliate, stats, referrals, payo
                 ))}
               </div>
             </div>
+
+            {editRateIsPartner && editRateConfirm && (
+              <div className="mb-4 bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800">
+                Zmienić prowizję dla kodu <span className="font-mono font-semibold">{editRateCodeName}</span>
+                {' '}ze stawki <strong>{editRateOriginalCommission}%</strong> na <strong>{editCommissionRate}%</strong>?
+                Zmiana dotyczy nowych transakcji.
+              </div>
+            )}
+
             <div className="flex gap-3">
-              <button onClick={() => setShowEditRateModal(false)} className="flex-1 border border-gray-200 text-gray-600 rounded-xl py-2.5 text-sm hover:bg-gray-50 transition">
+              <button onClick={() => { setShowEditRateModal(false); setEditRateConfirm(false) }} className="flex-1 border border-gray-200 text-gray-600 rounded-xl py-2.5 text-sm hover:bg-gray-50 transition">
                 Anuluj
               </button>
-              <button onClick={handleUpdateRate} disabled={editRateLoading} className="flex-1 bg-indigo-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 transition">
-                {editRateLoading ? 'Zapisywanie…' : 'Zapisz'}
-              </button>
+              {editRateIsPartner && !editRateConfirm ? (
+                <button
+                  onClick={() => editCommissionRate !== editRateOriginalCommission && setEditRateConfirm(true)}
+                  disabled={editCommissionRate === editRateOriginalCommission}
+                  className="flex-1 bg-indigo-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 transition"
+                >
+                  Dalej
+                </button>
+              ) : (
+                <button onClick={handleUpdateRate} disabled={editRateLoading} className="flex-1 bg-indigo-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 transition">
+                  {editRateLoading ? 'Zapisywanie…' : editRateIsPartner ? 'Potwierdź zmianę' : 'Zapisz'}
+                </button>
+              )}
             </div>
           </div>
         </div>

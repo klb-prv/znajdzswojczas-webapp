@@ -11,7 +11,12 @@ const postSchema = z.object({
 
 const patchSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('toggle_status'), id: z.string() }),
-  z.object({ action: z.literal('update_rate'), id: z.string(), client_discount_rate: z.number(), affiliate_commission_rate: z.number() }),
+  z.object({
+    action: z.literal('update_rate'),
+    id: z.string(),
+    client_discount_rate: z.number().int().min(1).max(100),
+    affiliate_commission_rate: z.number().int().min(1).max(100),
+  }),
   z.object({ action: z.literal('archive'), id: z.string() }),
 ])
 
@@ -76,15 +81,28 @@ export async function PATCH(req: NextRequest) {
         break
       }
       case 'update_rate': {
+        const { data: current } = await supabase
+          .from('affiliate_promo_codes')
+          .select('client_discount_rate, created_by')
+          .eq('id', body.id)
+          .single()
+        if (!current) return NextResponse.json({ error: 'Nie znaleziono kodu' }, { status: 404 })
+
+        // Kod utworzony przez partnera: nazwa i zniżka klienta są zablokowane,
+        // zmienić można wyłącznie prowizję.
+        const clientRate = current.created_by === 'affiliate'
+          ? current.client_discount_rate
+          : body.client_discount_rate
+
         const { error } = await supabase
           .from('affiliate_promo_codes')
           .update({
-            client_discount_rate: body.client_discount_rate,
+            client_discount_rate: clientRate,
             affiliate_commission_rate: body.affiliate_commission_rate,
           })
           .eq('id', body.id)
         if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-        break
+        break;
       }
       case 'archive': {
         const { error } = await supabase

@@ -10,7 +10,7 @@ export default async function AdminAffiliateDetailPage({ params }: { params: Pro
   let referrals: { id: string; client_label: string; service_name: string; order_value: number; commission_amount: number; status: string; created_at: string }[] = []
   let clickCount = 0
   let payouts: { id: string; amount: number; status: string; created_at: string }[] = []
-  let promoCodes: { id: string; code: string; client_discount_rate: number; affiliate_commission_rate: number; status: string; usage_count: number }[] = []
+  let promoCodes: { id: string; code: string; client_discount_rate: number; affiliate_commission_rate: number; status: string; usage_count: number; created_by: string }[] = []
   let discountCodeAssignments: { id: string; discount_code_id: string; code: string; discount_type: string; discount_value: number; active: boolean; used_count: number; affiliate_commission_rate: number }[] = []
   let availableDiscountCodes: { id: string; code: string; discount_type: string; discount_value: number; active: boolean }[] = []
 
@@ -53,7 +53,7 @@ export default async function AdminAffiliateDetailPage({ params }: { params: Pro
         .from('affiliate_promo_codes')
         .select('*')
         .eq('affiliate_id', id)
-        .order('created_at', { ascending: false }) as { data: { id: string; code: string; client_discount_rate: number; affiliate_commission_rate: number; status: string; usage_count: number }[] | null }
+        .order('created_at', { ascending: false }) as { data: { id: string; code: string; client_discount_rate: number; affiliate_commission_rate: number; status: string; usage_count: number; created_by: string }[] | null }
 
       promoCodes = codeData ?? []
 
