@@ -3,7 +3,6 @@ import { requireAffiliateContext } from '@/lib/affiliate-auth'
 import { format } from 'date-fns'
 import { pl } from 'date-fns/locale'
 import AffiliateCopyLink from '@/components/AffiliateCopyLink'
-import AffiliatePasswordChange from '@/components/AffiliatePasswordChange'
 
 const COMMISSION_STATUS: Record<string, { label: string; color: string }> = {
   pending:   { label: 'Oczekuje',     color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' },
@@ -133,11 +132,6 @@ export default async function AffiliateDashboardPage() {
             Brak prowizji. Udostępnij swój link lub kod, aby zacząć zarabiać.
           </div>
         )}
-      </div>
-
-      {/* Zmiana hasła */}
-      <div className="max-w-md">
-        <AffiliatePasswordChange />
       </div>
     </div>
   )

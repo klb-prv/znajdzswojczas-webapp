@@ -373,7 +373,7 @@ export default function AdminAffiliatesManager({ affiliates, referralCounts }: P
                 placeholder="np. partner@domena.pl"
                 className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <p className="text-[10px] text-gray-400 mt-1">Na ten adres wysłamy zaproszenie z danymi do logowania.</p>
+              <p className="text-[10px] text-gray-400 mt-1">Na podany adres email, zostanie wysłane zaproszenie.</p>
             </div>
             {addError && <p className="text-sm text-red-500 bg-red-50 rounded-xl px-3 py-2 text-center mb-4">{addError}</p>}
             <div className="flex gap-3">

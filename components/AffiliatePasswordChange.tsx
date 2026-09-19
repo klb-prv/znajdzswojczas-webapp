@@ -58,7 +58,6 @@ export default function AffiliatePasswordChange() {
 
   return (
     <div className="bg-white dark:bg-[#111114] border border-gray-200 dark:border-[#25252D] rounded-2xl p-6">
-      <h2 className="text-sm font-bold text-gray-900 dark:text-[#F5F5F7] mb-1">🔐 Zmiana hasła</h2>
       <p className="text-xs text-gray-400 dark:text-[#555] mb-4">
         Podaj obecne hasło, aby potwierdzić tożsamość. Nowe hasło musi spełniać wszystkie wymagania.
       </p>

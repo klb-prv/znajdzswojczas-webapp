@@ -95,6 +95,12 @@ export default function AffiliateSidebar({ affiliateName, affiliateLogin }: Prop
               <p className="text-[10px] text-gray-400 dark:text-[#555]">Program afiliacyjny</p>
             </div>
           </div>
+          <Link
+            href="/affiliate/change-password"
+            className="block mt-2 text-[10px] text-gray-400 dark:text-[#555] hover:text-gray-600 dark:hover:text-[#9A9AA3] transition"
+          >
+            Zmiana hasła
+          </Link>
         </div>
 
         <div className="flex-1 p-4 space-y-6">
