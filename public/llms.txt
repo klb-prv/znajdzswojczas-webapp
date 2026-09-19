@@ -14,7 +14,7 @@ Kluczowe informacje (na podstawie publicznie dostępnego regulaminu, obowiązuj�
 - Kontakt RODO/reklamacje: rodo@znajdzswojczas.pl.
 
 Sprawdzanie statusu zgłoszenia (gdy użytkownik podaje ID zgłoszenia):
-- Format ID: pełny UUID (np. `a1b2c3d4-...`) lub krótki numer `#XXXXXXXX` (pierwsze 8 znaków UUID,大写 nieistotne) — klient znajduje go w e-mailu potwierdzającym i na stronie potwierdzenia.
+- Format ID: pełny UUID (np. `a1b2c3d4-...`) lub krótki numer `#XXXXXXXX` (pierwsze 8 znaków UUID, wielkość liter bez znaczenia) — klient znajduje go w e-mailu potwierdzającym i na stronie potwierdzenia.
 - Sposób 1 (HTTP API, oba formaty): `POST https://znajdzswojczas.pl/api/reservations/status` z JSON `{"id": "<UUID lub #XXXXXXXX>"}` → zwraca m.in. `status`, `statusLabel` (po polsku), `date`, `topic`, `finalPrice`, `reservationNumber`; brak znalezienia → 404 `{"error": "Nie znaleziono zgłoszenia o podanym ID"}`.
 - Sposób 2 (strona dla człowieka, tylko pełny UUID): `https://znajdzswojczas.pl/status/<UUID>`.
 - Wartości pola `status`: `pending_confirmation` (oczekuje na potwierdzenie e-mailem), `confirmed` (przyjęte do realizacji), `rescheduled` (przełożone), `in_progress` (w trakcie realizacji), `awaiting_payment` (zrealizowane, oczekiwanie na płatność), `paid` (opłacone), `cancelled` (odwołane).
