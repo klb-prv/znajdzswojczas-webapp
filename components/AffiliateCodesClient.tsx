@@ -327,7 +327,7 @@ export default function AffiliateCodesClient({ selfCode, adminPromoCodes, discou
                 disabled={editLoading || editCodeInput.trim().length < 4 || editCodeInput.trim().toUpperCase() === selfCode.code}
                 className="flex-1 bg-violet-600 hover:bg-violet-700 dark:bg-[#7C5CFC] dark:hover:bg-[#9277FF] text-white rounded-xl py-2.5 text-sm font-semibold disabled:opacity-50 transition"
               >
-                {editLoading ? 'Zmieniam…' : 'Zmień niezwłocznie'}
+                {editLoading ? 'Zmieniam…' : 'Zmień kod'}
               </button>
             </div>
           </div>
